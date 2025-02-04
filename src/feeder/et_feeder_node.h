@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include <optional>
 
 #include "et_def.pb.h"
 
@@ -53,20 +54,23 @@ class ETFeederNode {
   std::unordered_map<std::string, const ChakraProtoMsg::AttributeProto&>
       other_attrs_{};
 
+  // required metadata
   uint64_t id_;
   std::string name_;
   bool is_cpu_op_;
   uint64_t runtime_;
-  uint64_t num_ops_;
-  uint32_t tensor_loc_;
-  uint64_t tensor_size_;
-  ChakraProtoMsg::CollectiveCommType comm_type_;
-  uint32_t comm_priority_;
-  uint64_t comm_size_;
-  uint32_t comm_src_;
-  uint32_t comm_dst_;
-  uint32_t comm_tag_;
-  std::string pg_name_;
+
+  // optional metadata
+  std::optional<uint64_t> num_ops_;
+  std::optional<uint32_t> tensor_loc_;
+  std::optional<uint64_t> tensor_size_;
+  std::optional<ChakraProtoMsg::CollectiveCommType> comm_type_;
+  std::optional<uint32_t> comm_priority_;
+  std::optional<uint64_t> comm_size_;
+  std::optional<uint32_t> comm_src_;
+  std::optional<uint32_t> comm_dst_;
+  std::optional<uint32_t> comm_tag_;
+  std::optional<std::string> pg_name_;
 };
 
 } // namespace Chakra

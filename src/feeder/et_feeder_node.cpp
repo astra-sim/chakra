@@ -17,6 +17,8 @@ ETFeederNode::ETFeederNode(std::shared_ptr<ChakraProtoMsg::Node> node) {
       this->is_cpu_op_ = static_cast<bool>(attr.bool_val());
     } else if (attr_name == "num_ops") {
       this->num_ops_ = static_cast<uint64_t>(attr.int64_val());
+    } else if (attr_name == "tensor_loc_") {
+      this->tensor_loc_ = attr.uint32_val();
     } else if (attr_name == "tensor_size") {
       this->tensor_size_ = attr.uint64_val();
     } else if (attr_name == "comm_type") {
@@ -106,41 +108,37 @@ uint64_t ETFeederNode::runtime() {
 }
 
 uint64_t ETFeederNode::num_ops() {
-  return num_ops_;
-}
-
-uint32_t ETFeederNode::tensor_loc() {
-  return tensor_loc_;
+  return num_ops_.value_or(0);
 }
 
 uint64_t ETFeederNode::tensor_size() {
-  return tensor_size_;
+  return tensor_size_.value_or(0);
 }
 
 ChakraProtoMsg::CollectiveCommType ETFeederNode::comm_type() {
-  return comm_type_;
+  return comm_type_.value_or(ChakraProtoMsg::CollectiveCommType::INVALID_COMM_TYPE);
 }
 
 uint32_t ETFeederNode::comm_priority() {
-  return comm_priority_;
+  return comm_priority_.value_or(0);
 }
 
 uint64_t ETFeederNode::comm_size() {
-  return comm_size_;
+  return comm_size_.value_or(0);
 }
 
 uint32_t ETFeederNode::comm_src() {
-  return comm_src_;
+  return comm_src_.value_or(0);
 }
 
 uint32_t ETFeederNode::comm_dst() {
-  return comm_dst_;
+  return comm_dst_.value_or(0);
 }
 
 uint32_t ETFeederNode::comm_tag() {
-  return comm_tag_;
+  return comm_tag_.value_or(0);
 }
 
-string ETFeederNode::pg_name() {
-  return pg_name_;
+std::string ETFeederNode::pg_name() {
+  return pg_name_.value_or("");
 }
