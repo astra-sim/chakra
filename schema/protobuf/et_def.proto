@@ -127,6 +127,7 @@ enum CollectiveCommType {
   REDUCE_SCATTER = 7;
   REDUCE_SCATTER_BLOCK = 8;
   BARRIER = 9;
+  INVALID_COMM_TYPE = 99;
 }
 
 message Node {
