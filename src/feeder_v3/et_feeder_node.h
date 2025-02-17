@@ -1,8 +1,8 @@
 #ifndef CHAKRA_FEEDER_V3_ET_FEEDER_NODE_H
 #define CHAKRA_FEEDER_V3_ET_FEEDER_NODE_H
 
-#include <memory>
 #include <functional>
+#include <memory>
 #include "common.h"
 #include "et_def.pb.h"
 
@@ -99,7 +99,7 @@ class ETFeederNode {
  private:
   template <typename T>
   class _TypeConverter {
-    public:
+   public:
     template <typename F>
     static T strict_converter(F value) {
       if constexpr (!std::is_same_v<F, T>) {
@@ -112,8 +112,7 @@ class ETFeederNode {
       if constexpr (std::is_integral_v<T>) {
         // integer to integer
         if constexpr (
-            ALLOW_IMPLICIT_INTEGER_CONVERSION &&
-            std::is_integral_v<F>)
+            ALLOW_IMPLICIT_INTEGER_CONVERSION && std::is_integral_v<F>)
           return static_cast<T>(value);
         // float to integer
         if constexpr (
@@ -123,13 +122,11 @@ class ETFeederNode {
       } else if constexpr (std::is_floating_point_v<T>) {
         // float to float
         if constexpr (
-            ALLOW_IMPLICIT_FLOAT_CONVERSION &&
-            std::is_floating_point_v<F>)
+            ALLOW_IMPLICIT_FLOAT_CONVERSION && std::is_floating_point_v<F>)
           return static_cast<T>(value);
         // integer to float
         if constexpr (
-            ALLOW_IMPLICIT_INTEGER_TO_FLOAT_CONVERSION &&
-            std::is_integral_v<F>)
+            ALLOW_IMPLICIT_INTEGER_TO_FLOAT_CONVERSION && std::is_integral_v<F>)
           return static_cast<T>(value);
       }
       throw std::bad_cast();
@@ -148,10 +145,9 @@ class ETFeederNode {
 };
 
 template <typename T>
-T ETFeederNode::get_attr(
-    const ChakraAttr& attr,
-    const bool strict_type) const {
+T ETFeederNode::get_attr(const ChakraAttr& attr, const bool strict_type) const {
   {
+    // change to implicit if user prefer here.
     auto cvt = [&](auto value) -> T {
       if (strict_type) {
         return _TypeConverter<T>::strict_converter(value);
@@ -206,9 +202,8 @@ T ETFeederNode::get_attr(
 }
 
 template <typename T>
-T ETFeederNode::get_attr(
-    const std::string& attr_name,
-    const bool strict_type) const {
+T ETFeederNode::get_attr(const std::string& attr_name, const bool strict_type)
+    const {
   // option 2: throw complaints
   if (this->has_attr(attr_name)) {
     const auto attr = this->get_attr_msg(attr_name);

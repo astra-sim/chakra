@@ -108,4 +108,3 @@ uint32_t ETFeederNode::comm_dst() const {
 uint32_t ETFeederNode::comm_tag() const {
   return this->get_attr<uint32_t>("comm_tag");
 }
-
