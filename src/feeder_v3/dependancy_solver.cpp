@@ -1,13 +1,13 @@
 #include "dependancy_solver.h"
 #include <shared_mutex>
+#include <stdexcept>
 #include <unordered_map>
 #include <unordered_set>
-#include <stdexcept>
 
 using namespace Chakra::FeederV3;
 
 void _DependancyLayer::add_node(
-  const NodeId& node,
+    const NodeId& node,
     const std::unordered_set<NodeId>& parents) {
   this->mutex.lock();
   this->_helper_allocate_bucket(node);
@@ -19,7 +19,7 @@ void _DependancyLayer::add_node(
 }
 
 void _DependancyLayer::add_node_children(
-  const NodeId& node,
+    const NodeId& node,
     const std::unordered_set<NodeId>& children) {
   this->mutex.lock();
   this->_helper_allocate_bucket(node);
@@ -91,15 +91,18 @@ void _DependancyLayer::resolve_dependancy_free_nodes() {
         "No dependancy free nodes found, there might be deadlocks");
 }
 
-const std::unordered_set<NodeId>& _DependancyLayer::get_dependancy_free_nodes() const {
+const std::unordered_set<NodeId>& _DependancyLayer::get_dependancy_free_nodes()
+    const {
   return this->dependancy_free_nodes;
 }
 
-const std::unordered_set<NodeId>& _DependancyLayer::get_children(NodeId node) const {
+const std::unordered_set<NodeId>& _DependancyLayer::get_children(
+    NodeId node) const {
   return this->child_map_parent.at(node);
 }
 
-const std::unordered_set<NodeId>& _DependancyLayer::get_parents(NodeId node) const {
+const std::unordered_set<NodeId>& _DependancyLayer::get_parents(
+    NodeId node) const {
   return this->parent_map_child.at(node);
 }
 
@@ -152,7 +155,8 @@ void DependancyResolver::finish_node(const NodeId& node) {
   this->enabled_dependancy.finish_node(node);
 }
 
-const std::unordered_set<NodeId>& DependancyResolver::get_dependancy_free_nodes() const {
+const std::unordered_set<NodeId>& DependancyResolver::
+    get_dependancy_free_nodes() const {
   return this->enabled_dependancy.get_dependancy_free_nodes();
 }
 

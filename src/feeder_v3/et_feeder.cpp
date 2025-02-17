@@ -50,8 +50,8 @@ void ETFeeder::build_index_cache() {
   this->chakra_file.clear();
   this->chakra_file.seekg(0, std::ios::beg);
   ChakraNode node;
-  bool ret =
-      ProtobufUtils::readMessage<ChakraGlobalMetadata>(this->chakra_file, this->global_metadata);
+  bool ret = ProtobufUtils::readMessage<ChakraGlobalMetadata>(
+      this->chakra_file, this->global_metadata);
   if (!ret)
     throw std::runtime_error("Failed to read global metadata");
   std::streampos last_pos = this->chakra_file.tellg();
@@ -67,7 +67,8 @@ void ETFeeder::build_index_cache() {
   this->chakra_file.seekg(0, std::ios::beg);
 }
 
-std::shared_ptr<const ChakraNode> ETFeeder::get_raw_chakra_node(NodeId node_id) {
+std::shared_ptr<const ChakraNode> ETFeeder::get_raw_chakra_node(
+    NodeId node_id) {
   auto key = std::make_tuple(this->_operator_id, node_id);
   auto node = ETFeeder::_node_cache.get_or_null_locked(key);
   if (node) {
@@ -86,4 +87,3 @@ std::shared_ptr<const ChakraNode> ETFeeder::get_raw_chakra_node(NodeId node_id) 
   ETFeeder::_node_cache.put(key, node_msg);
   return ETFeeder::_node_cache.get_locked(key);
 }
-

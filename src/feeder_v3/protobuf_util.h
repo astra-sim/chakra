@@ -1,16 +1,16 @@
 #ifndef CHAKRA_FEEDER_V3_PROTOBUF_UTIL_H
 #define CHAKRA_FEEDER_V3_PROTOBUF_UTIL_H
 
-#include "common.h"
 #include <cstdint>
 #include <iostream>
 #include <mutex>
+#include "common.h"
 
 namespace Chakra {
 namespace FeederV3 {
 class ProtobufUtils {
  public:
-  static bool readVarint32(std::istream& f, uint32_t& value){
+  static bool readVarint32(std::istream& f, uint32_t& value) {
     std::unique_lock<std::mutex> lock(_mutex);
     uint8_t byte;
     value = 0;
@@ -27,7 +27,7 @@ class ProtobufUtils {
   }
 
   template <typename T>
-  static bool readMessage(std::istream& f, T& msg){
+  static bool readMessage(std::istream& f, T& msg) {
     std::unique_lock<std::mutex> lock(_mutex);
     if (f.eof())
       return false;
@@ -49,7 +49,7 @@ class ProtobufUtils {
     return true;
   }
 
-  static bool writeVarint32(std::ostream& f, uint32_t value){
+  static bool writeVarint32(std::ostream& f, uint32_t value) {
     std::unique_lock<std::mutex> lock(_mutex);
     uint8_t byte;
     while (value > 0x7f) {
@@ -61,10 +61,9 @@ class ProtobufUtils {
     f.write(reinterpret_cast<char*>(&byte), 1);
     return true;
   }
-  
 
   template <typename T>
-  static bool writeMessage(std::ostream& f, T& msg){
+  static bool writeMessage(std::ostream& f, T& msg) {
     std::unique_lock<std::mutex> lock(_mutex);
     static char buffer[DEFAULT_PROTOBUF_BUFFER_SIZE];
     size_t size = msg.ByteSizeLong();
@@ -82,8 +81,9 @@ class ProtobufUtils {
     }
     return true;
   }
-  private:
-    static std::mutex _mutex;
+
+ private:
+  static std::mutex _mutex;
 };
 
 std::mutex ProtobufUtils::_mutex;

@@ -33,9 +33,11 @@ class _DependancyLayer {
    *  Taken --push_back--> Pending
    */
   void add_node(const NodeId& node, const std::unordered_set<NodeId>& parents);
-  void add_node_children(const NodeId& node, const std::unordered_set<NodeId>& children);
+  void add_node_children(
+      const NodeId& node,
+      const std::unordered_set<NodeId>& children);
   void take_node(const NodeId& node);
-  void finish_node(const NodeId&node);
+  void finish_node(const NodeId& node);
   void push_back_node(const NodeId& node);
   void resolve_dependancy_free_nodes();
 

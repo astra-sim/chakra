@@ -13,16 +13,17 @@
 #include "et_feeder_node.h"
 
 namespace std {
-  template <>
-  struct hash<
-      std::tuple<Chakra::FeederV3::ETFeederId, Chakra::FeederV3::NodeId>> {
-    size_t operator()(
-        const std::tuple<Chakra::FeederV3::ETFeederId, Chakra::FeederV3::NodeId>& k) const {
-      return std::hash<Chakra::FeederV3::ETFeederId>()(std::get<0>(k)) ^
-          (std::hash<Chakra::FeederV3::NodeId>()(std::get<1>(k)) << 1);
-    }
-  };
-  } // namespace std
+template <>
+struct hash<
+    std::tuple<Chakra::FeederV3::ETFeederId, Chakra::FeederV3::NodeId>> {
+  size_t operator()(
+      const std::tuple<Chakra::FeederV3::ETFeederId, Chakra::FeederV3::NodeId>&
+          k) const {
+    return std::hash<Chakra::FeederV3::ETFeederId>()(std::get<0>(k)) ^
+        (std::hash<Chakra::FeederV3::NodeId>()(std::get<1>(k)) << 1);
+  }
+};
+} // namespace std
 
 namespace Chakra {
 namespace FeederV3 {
