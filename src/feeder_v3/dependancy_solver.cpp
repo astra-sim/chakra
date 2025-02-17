@@ -7,8 +7,8 @@
 using namespace Chakra::FeederV3;
 
 void _DependancyLayer::add_node(
-    NodeId node,
-    std::unordered_set<NodeId>& parents) {
+  const NodeId& node,
+    const std::unordered_set<NodeId>& parents) {
   this->mutex.lock();
   this->_helper_allocate_bucket(node);
   for (auto& parent : parents) {
@@ -19,8 +19,8 @@ void _DependancyLayer::add_node(
 }
 
 void _DependancyLayer::add_node_children(
-    NodeId node,
-    std::unordered_set<NodeId>& children) {
+  const NodeId& node,
+    const std::unordered_set<NodeId>& children) {
   this->mutex.lock();
   this->_helper_allocate_bucket(node);
   for (auto& child : children) {
@@ -30,7 +30,7 @@ void _DependancyLayer::add_node_children(
   }
 }
 
-void _DependancyLayer::take_node(NodeId node) {
+void _DependancyLayer::take_node(const NodeId& node) {
   this->mutex.lock();
   if (this->dependancy_free_nodes.find(node) ==
       this->dependancy_free_nodes.end()) {
@@ -44,7 +44,7 @@ void _DependancyLayer::take_node(NodeId node) {
   this->dependancy_free_nodes.erase(node);
 }
 
-void _DependancyLayer::finish_node(NodeId node) {
+void _DependancyLayer::finish_node(const NodeId& node) {
   this->mutex.lock();
   if (this->ongoing_nodes.find(node) == this->ongoing_nodes.end()) {
     throw std::runtime_error("Node is not taken");
@@ -66,7 +66,7 @@ void _DependancyLayer::finish_node(NodeId node) {
   this->parent_map_child.erase(node);
 }
 
-void _DependancyLayer::push_back_node(NodeId node) {
+void _DependancyLayer::push_back_node(const NodeId& node) {
   this->mutex.lock();
   if (this->ongoing_nodes.find(node) == this->ongoing_nodes.end()) {
     throw std::runtime_error("Node is not taken");
@@ -91,15 +91,15 @@ void _DependancyLayer::resolve_dependancy_free_nodes() {
         "No dependancy free nodes found, there might be deadlocks");
 }
 
-std::unordered_set<NodeId>& _DependancyLayer::get_dependancy_free_nodes() {
+const std::unordered_set<NodeId>& _DependancyLayer::get_dependancy_free_nodes() const {
   return this->dependancy_free_nodes;
 }
 
-std::unordered_set<NodeId>& _DependancyLayer::get_children(NodeId node) {
+const std::unordered_set<NodeId>& _DependancyLayer::get_children(NodeId node) const {
   return this->child_map_parent.at(node);
 }
 
-std::unordered_set<NodeId>& _DependancyLayer::get_parents(NodeId node) {
+const std::unordered_set<NodeId>& _DependancyLayer::get_parents(NodeId node) const {
   return this->parent_map_child.at(node);
 }
 
@@ -112,7 +112,7 @@ void _DependancyLayer::_helper_allocate_bucket(NodeId node_id) {
   }
 }
 
-void DependancyResolver::add_node(ChakraNode& node) {
+void DependancyResolver::add_node(const ChakraNode& node) {
   NodeId node_id = node.id();
   std::unordered_set<NodeId> parents, enabled_parents;
   for (auto& parent : node.data_deps()) {
@@ -134,37 +134,37 @@ void DependancyResolver::add_node(ChakraNode& node) {
   this->enabled_dependancy.add_node(node_id, enabled_parents);
 }
 
-void DependancyResolver::take_node(NodeId node) {
+void DependancyResolver::take_node(const NodeId& node) {
   this->data_dependancy.take_node(node);
   this->ctrl_dependancy.take_node(node);
   this->enabled_dependancy.take_node(node);
 }
 
-void DependancyResolver::push_back_node(NodeId node) {
+void DependancyResolver::push_back_node(const NodeId& node) {
   this->data_dependancy.push_back_node(node);
   this->ctrl_dependancy.push_back_node(node);
   this->enabled_dependancy.push_back_node(node);
 }
 
-void DependancyResolver::finish_node(NodeId node) {
+void DependancyResolver::finish_node(const NodeId& node) {
   this->data_dependancy.finish_node(node);
   this->ctrl_dependancy.finish_node(node);
   this->enabled_dependancy.finish_node(node);
 }
 
-std::unordered_set<NodeId>& DependancyResolver::get_dependancy_free_nodes() {
+const std::unordered_set<NodeId>& DependancyResolver::get_dependancy_free_nodes() const {
   return this->enabled_dependancy.get_dependancy_free_nodes();
 }
 
-_DependancyLayer& DependancyResolver::get_data_dependancy() {
+const _DependancyLayer& DependancyResolver::get_data_dependancy() const {
   return this->data_dependancy;
 }
 
-_DependancyLayer& DependancyResolver::get_ctrl_dependancy() {
+const _DependancyLayer& DependancyResolver::get_ctrl_dependancy() const {
   return this->ctrl_dependancy;
 }
 
-_DependancyLayer& DependancyResolver::get_enabled_dependancy() {
+const _DependancyLayer& DependancyResolver::get_enabled_dependancy() const {
   return this->enabled_dependancy;
 }
 

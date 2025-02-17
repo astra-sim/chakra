@@ -32,16 +32,16 @@ class _DependancyLayer {
    *  Finished --add--> Pending --take--> Taken --finish--> Finished
    *  Taken --push_back--> Pending
    */
-  void add_node(NodeId node, std::unordered_set<NodeId>& parents);
-  void add_node_children(NodeId node, std::unordered_set<NodeId>& children);
-  void take_node(NodeId node);
-  void finish_node(NodeId node);
-  void push_back_node(NodeId node);
+  void add_node(const NodeId& node, const std::unordered_set<NodeId>& parents);
+  void add_node_children(const NodeId& node, const std::unordered_set<NodeId>& children);
+  void take_node(const NodeId& node);
+  void finish_node(const NodeId&node);
+  void push_back_node(const NodeId& node);
   void resolve_dependancy_free_nodes();
 
-  std::unordered_set<NodeId>& get_dependancy_free_nodes();
-  std::unordered_set<NodeId>& get_children(NodeId node);
-  std::unordered_set<NodeId>& get_parents(NodeId node);
+  const std::unordered_set<NodeId>& get_dependancy_free_nodes() const;
+  const std::unordered_set<NodeId>& get_children(NodeId node) const;
+  const std::unordered_set<NodeId>& get_parents(NodeId node) const;
 
  private:
   std::unordered_map<NodeId, std::unordered_set<NodeId>> child_map_parent;
@@ -61,15 +61,15 @@ class DependancyResolver {
         throw std::runtime_error(
             "Should not create a dependancy resolver that resolves neither data nor control dependancy");
   }
-  void add_node(ChakraNode& node);
-  void take_node(NodeId node);
-  void push_back_node(NodeId node);
-  void finish_node(NodeId node);
+  void add_node(const ChakraNode& node);
+  void take_node(const NodeId& node);
+  void push_back_node(const NodeId& node);
+  void finish_node(const NodeId& node);
 
-  std::unordered_set<NodeId>& get_dependancy_free_nodes();
-  _DependancyLayer& get_data_dependancy();
-  _DependancyLayer& get_ctrl_dependancy();
-  _DependancyLayer& get_enabled_dependancy();
+  const std::unordered_set<NodeId>& get_dependancy_free_nodes() const;
+  const _DependancyLayer& get_data_dependancy() const;
+  const _DependancyLayer& get_ctrl_dependancy() const;
+  const _DependancyLayer& get_enabled_dependancy() const;
 
   // Warning: It is user's responsibility to make sure different layer's
   // dependancy are consistent.

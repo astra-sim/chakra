@@ -1,14 +1,17 @@
 #ifndef CHAKRA_FEEDER_V3_PROTOBUF_UTIL_H
 #define CHAKRA_FEEDER_V3_PROTOBUF_UTIL_H
 
+#include "common.h"
 #include <cstdint>
 #include <iostream>
+#include <mutex>
 
 namespace Chakra {
 namespace FeederV3 {
 class ProtobufUtils {
  public:
   static bool readVarint32(std::istream& f, uint32_t& value){
+    std::unique_lock<std::mutex> lock(_mutex);
     uint8_t byte;
     value = 0;
     int8_t shift = 0;
@@ -25,28 +28,29 @@ class ProtobufUtils {
 
   template <typename T>
   static bool readMessage(std::istream& f, T& msg){
-    constexpr size_t DEFAULT_BUFFER_SIZE = 16384;
+    std::unique_lock<std::mutex> lock(_mutex);
     if (f.eof())
       return false;
-    static char buffer[DEFAULT_BUFFER_SIZE];
+    static char buffer[DEFAULT_PROTOBUF_BUFFER_SIZE];
     uint32_t size;
     if (!readVarint32(f, size))
       return false;
     char* buffer_use = buffer;
-    if (size > DEFAULT_BUFFER_SIZE - 1) {
+    if (size > DEFAULT_PROTOBUF_BUFFER_SIZE - 1) {
       // buffer is not large enough, use a dynamic buffer
       buffer_use = new char[size + 1];
     }
     f.read(buffer_use, size);
     buffer_use[size] = 0;
     msg.ParseFromArray(buffer_use, size);
-    if (size > DEFAULT_BUFFER_SIZE - 1) {
+    if (size > DEFAULT_PROTOBUF_BUFFER_SIZE - 1) {
       delete[] buffer_use;
     }
     return true;
   }
 
   static bool writeVarint32(std::ostream& f, uint32_t value){
+    std::unique_lock<std::mutex> lock(_mutex);
     uint8_t byte;
     while (value > 0x7f) {
       byte = (value & 0x7f) | 0x80;
@@ -61,10 +65,10 @@ class ProtobufUtils {
 
   template <typename T>
   static bool writeMessage(std::ostream& f, T& msg){
-    constexpr size_t DEFAULT_BUFFER_SIZE = 16384;
-    static char buffer[DEFAULT_BUFFER_SIZE];
+    std::unique_lock<std::mutex> lock(_mutex);
+    static char buffer[DEFAULT_PROTOBUF_BUFFER_SIZE];
     size_t size = msg.ByteSizeLong();
-    if (size > DEFAULT_BUFFER_SIZE - 1) {
+    if (size > DEFAULT_PROTOBUF_BUFFER_SIZE - 1) {
       // buffer is not large enough, use a dynamic buffer
       char* buffer_use = new char[size];
       msg.SerializeToArray(buffer_use, size);
@@ -78,7 +82,11 @@ class ProtobufUtils {
     }
     return true;
   }
+  private:
+    static std::mutex _mutex;
 };
+
+std::mutex ProtobufUtils::_mutex;
 } // namespace FeederV3
 } // namespace Chakra
 #endif

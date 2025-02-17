@@ -9,7 +9,7 @@ void ETFeeder::addNode(std::shared_ptr<ETFeederNode> node) {
       "For offloaded ETFeeder, the graph is static and readonly, and addNode is not supported");
 }
 
-void ETFeeder::removeNode(uint64_t node_id) {
+void ETFeeder::removeNode(const NodeId& node_id) {
   static bool firstTime = true;
   if (firstTime) {
     firstTime = false;
@@ -30,21 +30,21 @@ std::shared_ptr<ETFeederNode> ETFeeder::getNextIssuableNode() {
   return this->lookupNode(node_id);
 }
 
-void ETFeeder::pushBackIssuableNode(uint64_t node_id) {
+void ETFeeder::pushBackIssuableNode(const NodeId& node_id) {
   this->dependancy_resolver.push_back_node(node_id);
 }
 
-std::shared_ptr<ETFeederNode> ETFeeder::lookupNode(uint64_t node_id) {
+std::shared_ptr<ETFeederNode> ETFeeder::lookupNode(const NodeId& node_id) {
   return std::make_shared<ETFeederNode>(*this, node_id);
 }
 
-void ETFeeder::freeChildrenNodes(uint64_t node_id) {
+void ETFeeder::freeChildrenNodes(const NodeId& node_id) {
   this->dependancy_resolver.finish_node(node_id);
 }
 
 uint64_t ETFeeder::_operator_id_cnt = 0;
 Cache<std::tuple<ETFeederId, NodeId>, ChakraNode> ETFeeder::_node_cache(
-    DEFAULT_CACHE_SIZE);
+    DEFAULT_ETFEEDER_CACHE_SIZE);
 
 void ETFeeder::build_index_cache() {
   this->chakra_file.clear();
@@ -67,7 +67,7 @@ void ETFeeder::build_index_cache() {
   this->chakra_file.seekg(0, std::ios::beg);
 }
 
-std::shared_ptr<ChakraNode> ETFeeder::get_raw_chakra_node(NodeId node_id) {
+std::shared_ptr<const ChakraNode> ETFeeder::get_raw_chakra_node(NodeId node_id) {
   auto key = std::make_tuple(this->_operator_id, node_id);
   auto node = ETFeeder::_node_cache.get_or_null_locked(key);
   if (node) {

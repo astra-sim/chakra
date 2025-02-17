@@ -49,15 +49,15 @@ class ETFeeder {
     return dependancy_resolver;
   }
 
-  std::shared_ptr<ETFeederNode> lookupNode(uint64_t node_id);
+  std::shared_ptr<ETFeederNode> lookupNode(const NodeId& node_id);
   bool hasNodesToIssue();
   std::shared_ptr<ETFeederNode> getNextIssuableNode();
-  void pushBackIssuableNode(uint64_t node_id);
-  void freeChildrenNodes(uint64_t node_id);
+  void pushBackIssuableNode(const NodeId& node_id);
+  void freeChildrenNodes(const NodeId& node_id);
 
   // legacy interface
   void addNode(std::shared_ptr<ETFeederNode> node);
-  void removeNode(uint64_t node_id);
+  void removeNode(const NodeId& node_id);
 
  private:
   static uint64_t _operator_id_cnt;
@@ -71,7 +71,7 @@ class ETFeeder {
   DependancyResolver dependancy_resolver;
 
   void build_index_cache();
-  std::shared_ptr<ChakraNode> get_raw_chakra_node(NodeId node_id);
+  std::shared_ptr<const ChakraNode> get_raw_chakra_node(NodeId node_id);
   friend class ETFeederNode;
 };
 } // namespace FeederV3

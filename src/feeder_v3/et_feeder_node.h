@@ -14,17 +14,17 @@ class ETFeederNode {
   ETFeederNode(ETFeeder& etfeeder, NodeId node_id)
       : feeder(etfeeder), node_id(node_id) {}
 
-  bool has_attr(std::string& attr_name);
-  const ChakraAttr get_attr_msg(std::string& attr_name);
-  bool get_attr_msg(std::string& attr_name, const ChakraAttr** attr);
-  ChakraAttr::ValueCase get_attr_type(ChakraAttr& attr);
+  bool has_attr(const std::string& attr_name);
+  const ChakraAttr get_attr_msg(const std::string& attr_name);
+  bool get_attr_msg(const std::string& attr_name, const ChakraAttr** attr);
+  ChakraAttr::ValueCase get_attr_type(const ChakraAttr& attr);
   template <typename T>
-  T get_attr(ChakraAttr& attr, bool strict);
+  T get_attr(const ChakraAttr& attr, const bool strict);
 
-  NodeId id();
-  std::string name();
-  ChakraProtoMsg::NodeType type();
-  uint64_t runtime();
+  const NodeId id() const ;
+  const std::string name() const ;
+  const ChakraProtoMsg::NodeType type() const ;
+  const uint64_t runtime() const ;
 
   // old interface
   bool is_cpu_op();
@@ -42,9 +42,9 @@ class ETFeederNode {
   // ETFeederNode only store minimal thing to reduce memory usage.
   ETFeeder& feeder;
   NodeId node_id;
-  std::weak_ptr<ChakraNode> chakra_node;
+  mutable std::weak_ptr<const ChakraNode> chakra_node;
 
-  std::shared_ptr<ChakraNode> get_chakra_node();
+  std::shared_ptr<const ChakraNode> get_chakra_node() const ;
 };
 
 } // namespace FeederV3
