@@ -3,22 +3,26 @@
 
 using namespace Chakra::FeederV3;
 
-const ChakraNode ETFeederNode::get_chakra_node() const {
-  return this->feeder.get_raw_chakra_node(this->node_id);
+std::shared_ptr<ChakraNode> ETFeederNode::get_chakra_node() {
+  if (this->chakra_node.expired()) {
+    auto node = this->feeder.get_raw_chakra_node(this->node_id);
+    this->chakra_node = node;
+    return node;
+  }
+  return this->chakra_node.lock();
 }
 
-const bool ETFeederNode::has_attr(const std::string& attr_name) const {
-  const ChakraNode& node = this->get_chakra_node();
-  for (const auto& attr : node.attr())
+bool ETFeederNode::has_attr(std::string& attr_name) {
+  std::shared_ptr<ChakraNode> node = this->get_chakra_node();
+  for (auto& attr : node->attr())
     if (attr.name() == attr_name)
       return true;
   return false;
 }
 
-const ChakraAttr ETFeederNode::get_attr_msg(
-    const std::string& attr_name) const {
-  const ChakraNode node = this->get_chakra_node();
-  for (const auto& attr : node.attr())
+const ChakraAttr ETFeederNode::get_attr_msg(std::string& attr_name) {
+  std::shared_ptr<ChakraNode> node = this->get_chakra_node();
+  for (auto& attr : node->attr())
     if (attr.name() == attr_name)
       return attr;
   throw std::runtime_error(
@@ -26,27 +30,24 @@ const ChakraAttr ETFeederNode::get_attr_msg(
       std::to_string(this->node_id));
 }
 
-bool ETFeederNode::get_attr_msg(
-    const std::string& attr_name,
-    const ChakraAttr** attr) const {
-  const ChakraNode node = this->get_chakra_node();
-  for (const auto& attr : node.attr())
-    if (attr.name() == attr_name) {
-      *attr = &attr;
+bool ETFeederNode::get_attr_msg(std::string& attr_name, const ChakraAttr** attr) {
+  std::shared_ptr<ChakraNode> node = this->get_chakra_node();
+  for (auto& iter_attr : node->attr())
+    if (iter_attr.name() == attr_name) {
+      *attr = &iter_attr;
       return true;
     }
   return false;
 }
 
-const ChakraAttr::ValueCase& ETFeederNode::get_attr_type(
-    const ChakraAttr& attr) const {
+ChakraAttr::ValueCase ETFeederNode::get_attr_type(ChakraAttr& attr) {
   return attr.value_case();
 }
 
 // template <typename T>
-// T ETFeederNode::get_attr_strict_typed(const ChakraAttr& attr) const {
+// T ETFeederNode::get_attr_strict_typed( ChakraAttr& attr)  {
 //   auto get_value = [](auto value, auto expected_type) -> T {
-//     if constexpr (!std::is_same<T, decltype(expected_type)>::value) {
+//     if expr (!std::is_same<T, decltype(expected_type)>::value) {
 //       throw std::bad_cast("Attribute type not supported");
 //     }
 //     return static_cast<T>(value);
@@ -84,17 +85,17 @@ const ChakraAttr::ValueCase& ETFeederNode::get_attr_type(
 // }
 
 // template <typename T>
-// T ETFeederNode::get_attr(const ChakraAttr& attr) const {
+// T ETFeederNode::get_attr( ChakraAttr& attr)  {
 //   try {
 //     return this->get_attr_strict_typed<T>(attr);
-//   } catch (const std::bad_cast& e) {
-//     if constexpr (this->NO_IMPLICIT_CONVERSION)
+//   } catch ( std::bad_cast& e) {
+//     if expr (this->NO_IMPLICIT_CONVERSION)
 //       goto BAD_CAST;
 //   }
 
-//   const auto& attr_type = this->get_attr_type(attr);
-//   if constexpr (std::is_integral_v<T>) {
-//     if constexpr (this->ALLOW_IMPLICIT_INTEGER_CONVERSION) {
+//    auto& attr_type = this->get_attr_type(attr);
+//   if expr (std::is_integral_v<T>) {
+//     if expr (this->ALLOW_IMPLICIT_INTEGER_CONVERSION) {
 //       switch (attr_type) {
 //         case ChakraAttr::kInt32Val:
 //           return std::static_cast<T>(attr.int32_val());
@@ -122,7 +123,7 @@ const ChakraAttr::ValueCase& ETFeederNode::get_attr_type(
 //           break; // fall back to float_to_integer conversion
 //       }
 //     }
-//     if constexpr (this->ALLOW_IMPLICIT_FLOAT_TO_INTEGER_CONVERSION) {
+//     if expr (this->ALLOW_IMPLICIT_FLOAT_TO_INTEGER_CONVERSION) {
 //       switch (attr_type) {
 //         case ChakraAttr::kDoubleVal:
 //           return std::static_cast<T>(attr.double_val());
@@ -132,8 +133,8 @@ const ChakraAttr::ValueCase& ETFeederNode::get_attr_type(
 //           break; // fall back to bad cast
 //       }
 //     }
-//   } else if constexpr (std::is_floating_point_v<T>) {
-//     if constexpr (this->ALLOW_IMPLICIT_FLOAT_CONVERSION) {
+//   } else if expr (std::is_floating_point_v<T>) {
+//     if expr (this->ALLOW_IMPLICIT_FLOAT_CONVERSION) {
 //       switch (attr_type) {
 //         case ChakraAttr::kDoubleVal:
 //           return std::static_cast<T>(attr.double_val());
@@ -143,7 +144,7 @@ const ChakraAttr::ValueCase& ETFeederNode::get_attr_type(
 //           break; // fall back to integer_to_float conversion
 //       }
 //     }
-//     if constexpr (this->ALLOW_IMPLICIT_INTEGER_TO_FLOAT_CONVERSION) {
+//     if expr (this->ALLOW_IMPLICIT_INTEGER_TO_FLOAT_CONVERSION) {
 //       switch (attr_type) {
 //         case ChakraAttr::kInt32Val:
 //           return std::static_cast<T>(attr.int32_val());
@@ -178,7 +179,7 @@ const ChakraAttr::ValueCase& ETFeederNode::get_attr_type(
 // }
 
 template <typename T>
-T ETFeederNode::get_attr(const ChakraAttr& attr, const bool strict) const {
+T ETFeederNode::get_attr(ChakraAttr& attr, bool strict) {
   constexpr auto STRICT_CVT = [](auto value) -> T {
     if constexpr (!std::is_same_v<T, decltype(value)>) {
       throw std::bad_cast();
@@ -189,23 +190,23 @@ T ETFeederNode::get_attr(const ChakraAttr& attr, const bool strict) const {
     if constexpr (std::is_integral_v<T>) {
       // integer to integer
       if constexpr (
-          this->ALLOW_IMPLICIT_INTEGER_CONVERSION &&
+          ALLOW_IMPLICIT_INTEGER_CONVERSION &&
           std::is_integral_v<decltype(value)>)
         return static_cast<T>(value);
       // float to integer
       if constexpr (
-          this->ALLOW_IMPLICIT_FLOAT_TO_INTEGER_CONVERSION &&
+          ALLOW_IMPLICIT_FLOAT_TO_INTEGER_CONVERSION &&
           std::is_floating_point_v<decltype(value)>)
         return static_cast<T>(value);
     } else if constexpr (std::is_floating_point_v<T>) {
       // float to float
       if constexpr (
-          this->ALLOW_IMPLICIT_FLOAT_CONVERSION &&
+          ALLOW_IMPLICIT_FLOAT_CONVERSION &&
           std::is_floating_point_v<decltype(value)>)
         return static_cast<T>(value);
       // integer to float
       if constexpr (
-          this->ALLOW_IMPLICIT_INTEGER_TO_FLOAT_CONVERSION &&
+          ALLOW_IMPLICIT_INTEGER_TO_FLOAT_CONVERSION &&
           std::is_integral_v<decltype(value)>)
         return static_cast<T>(value);
     }
@@ -216,7 +217,7 @@ T ETFeederNode::get_attr(const ChakraAttr& attr, const bool strict) const {
   };
 
   // choose implicit cvt if user prefer by mod this line.
-  const auto cvt = strict ? STRICT_CVT : FLAGGED_IMPLICIT_CVT;
+  auto cvt = strict ? STRICT_CVT : FLAGGED_IMPLICIT_CVT;
 
   switch (attr.value_case()) {
     case ChakraAttr::kDoubleVal:
@@ -250,22 +251,22 @@ T ETFeederNode::get_attr(const ChakraAttr& attr, const bool strict) const {
   }
 }
 
-NodeId ETFeederNode::id() const {
-  const ChakraNode node = this->get_chakra_node();
-  return node.id();
+NodeId ETFeederNode::id() {
+  auto node = this->get_chakra_node();
+  return node->id();
 }
 
-std::string ETFeederNode::name() const {
-  const ChakraNode node = this->get_chakra_node();
-  return node.name();
+std::string ETFeederNode::name() {
+  auto node = this->get_chakra_node();
+  return node->name();
 }
 
-ChakraProtoMsg::NodeType ETFeederNode::type() const {
-  const ChakraNode node = this->get_chakra_node();
-  return node.type();
+ChakraProtoMsg::NodeType ETFeederNode::type() {
+  auto node = this->get_chakra_node();
+  return node->type();
 }
 
-uint64_t ETFeederNode::runtime() const {
-  const ChakraNode node = this->get_chakra_node();
-  return node.runtime();
+uint64_t ETFeederNode::runtime() {
+  auto node = this->get_chakra_node();
+  return node->duration_micros();
 }

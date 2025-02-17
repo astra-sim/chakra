@@ -2,22 +2,35 @@
 #define CHAKRA_FEEDER_V3_ET_FEEDER_H
 
 #include <fstream>
+#include <functional>
+#include <memory>
+#include <string>
+#include <tuple>
 #include "cache.h"
+#include "common.h"
 #include "dependancy_solver.h"
 #include "et_def.pb.h"
+#include "et_feeder_node.h"
+
+namespace std {
+  template <>
+  struct hash<
+      std::tuple<Chakra::FeederV3::ETFeederId, Chakra::FeederV3::NodeId>> {
+    size_t operator()(
+        const std::tuple<Chakra::FeederV3::ETFeederId, Chakra::FeederV3::NodeId>& k) const {
+      return std::hash<Chakra::FeederV3::ETFeederId>()(std::get<0>(k)) ^
+          (std::hash<Chakra::FeederV3::NodeId>()(std::get<1>(k)) << 1);
+    }
+  };
+  } // namespace std
 
 namespace Chakra {
 namespace FeederV3 {
-using NodeId = uint64_t;
-using ETFeederId = uint64_t;
-using ChakraNode = ChakraProtoMsg::Node;
-
-class ETFeederNode;
 
 class ETFeeder {
  public:
-  ChakraProtoMsg::GlobalMetadata global_metadata;
-  ETFeeder(const std::string& file_path)
+  ChakraGlobalMetadata global_metadata;
+  ETFeeder(std::string& file_path)
       : chakra_file(file_path, std::ios::binary | std::ios::in | std::ios::app),
         _operator_id(_operator_id_cnt++),
         dependancy_resolver(USE_DATA_DEPS, USE_CTRL_DEPS) {
@@ -47,22 +60,18 @@ class ETFeeder {
   void removeNode(uint64_t node_id);
 
  private:
-  constexpr size_t DEFAULT_CACHE_SIZE = 16384;
-  constexpr bool USE_DATA_DEPS = true;
-  constexpr bool USE_CTRL_DEPS = true;
-
   static uint64_t _operator_id_cnt;
   uint64_t _operator_id;
 
   // shared global cache for storing chakra msgs.
-  static Cache<std::tuple<ETFileOperatorId, NodeId>, ChakraNode> _node_cache;
+  static Cache<std::tuple<ETFeederId, NodeId>, ChakraNode> _node_cache;
 
   std::ifstream chakra_file;
   std::unordered_map<NodeId, std::streampos> index_map;
   DependancyResolver dependancy_resolver;
 
   void build_index_cache();
-  const std::shared_ptr<const ChakraNode> get_raw_chakra_node(NodeId node_id);
+  std::shared_ptr<ChakraNode> get_raw_chakra_node(NodeId node_id);
   friend class ETFeederNode;
 };
 } // namespace FeederV3

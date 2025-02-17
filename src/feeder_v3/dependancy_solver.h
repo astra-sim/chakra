@@ -2,15 +2,14 @@
 #define CHAKRA_FEEDER_V3_DEPENDANCY_SOLVER_H
 
 #include <cstdint>
+#include <shared_mutex>
 #include <unordered_map>
 #include <unordered_set>
+#include "common.h"
 #include "et_def.pb.h"
 
 namespace Chakra {
 namespace FeederV3 {
-
-using NodeId = uint64_t;
-using ChakraNode = ChakraProtoMsg::Node;
 
 class _DependancyLayer {
  public:
@@ -33,25 +32,23 @@ class _DependancyLayer {
    *  Finished --add--> Pending --take--> Taken --finish--> Finished
    *  Taken --push_back--> Pending
    */
-  void add_node(const NodeId node, const std::unordered_set<NodeId>& parents);
-  void add_node_children(
-      const NodeId node,
-      const std::unordered_set<NodeId>& children);
-  void take_node(const NodeId node);
-  void finish_node(const NodeId node);
-  void push_back_node(const NodeId node);
+  void add_node(NodeId node, std::unordered_set<NodeId>& parents);
+  void add_node_children(NodeId node, std::unordered_set<NodeId>& children);
+  void take_node(NodeId node);
+  void finish_node(NodeId node);
+  void push_back_node(NodeId node);
   void resolve_dependancy_free_nodes();
 
-  const std::unordered_set<NodeId>& get_dependancy_free_nodes() const;
-  const std::unordered_set<NodeId>& get_children(const NodeId node) const;
-  const std::unordered_set<NodeId>& get_parents(const NodeId node) const;
+  std::unordered_set<NodeId>& get_dependancy_free_nodes();
+  std::unordered_set<NodeId>& get_children(NodeId node);
+  std::unordered_set<NodeId>& get_parents(NodeId node);
 
  private:
   std::unordered_map<NodeId, std::unordered_set<NodeId>> child_map_parent;
   std::unordered_map<NodeId, std::unordered_set<NodeId>> parent_map_child;
   std::unordered_set<NodeId> dependancy_free_nodes;
   std::unordered_set<NodeId> ongoing_nodes;
-  void _helper_allocate_bucket(const NodeId node_id);
+  void _helper_allocate_bucket(NodeId node_id);
   std::shared_mutex mutex;
 };
 
@@ -64,21 +61,21 @@ class DependancyResolver {
         throw std::runtime_error(
             "Should not create a dependancy resolver that resolves neither data nor control dependancy");
   }
-  void add_node(const ChakraNode& node);
-  void take_node(const NodeId node);
-  void push_back_node(const NodeId node);
-  void finish_node(const NodeId node);
+  void add_node(ChakraNode& node);
+  void take_node(NodeId node);
+  void push_back_node(NodeId node);
+  void finish_node(NodeId node);
 
-  const std::unordered_set<NodeId>& get_dependancy_free_nodes() const;
-  const _DependancyLayer& get_data_dependancy() const;
-  const _DependancyLayer& get_ctrl_dependancy() const;
-  const _DependancyLayer& get_enabled_dependancy() const;
+  std::unordered_set<NodeId>& get_dependancy_free_nodes();
+  _DependancyLayer& get_data_dependancy();
+  _DependancyLayer& get_ctrl_dependancy();
+  _DependancyLayer& get_enabled_dependancy();
 
   // Warning: It is user's responsibility to make sure different layer's
   // dependancy are consistent.
-  _DependancyLayer& get_data_dependancy_mut() const;
-  _DependancyLayer& get_ctrl_dependancy_mut() const;
-  _DependancyLayer& get_enabled_dependancy_mut() const;
+  _DependancyLayer& get_data_dependancy_mut();
+  _DependancyLayer& get_ctrl_dependancy_mut();
+  _DependancyLayer& get_enabled_dependancy_mut();
 
  private:
   bool enable_data_deps;

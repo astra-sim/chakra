@@ -1,4 +1,5 @@
 #include "et_feeder.h"
+#include "common.h"
 #include "protobuf_util.h"
 
 using namespace Chakra::FeederV3;
@@ -23,7 +24,7 @@ bool ETFeeder::hasNodesToIssue() {
 }
 
 std::shared_ptr<ETFeederNode> ETFeeder::getNextIssuableNode() {
-  const auto& node_id =
+  auto& node_id =
       *(this->dependancy_resolver.get_dependancy_free_nodes().begin());
   this->dependancy_resolver.take_node(node_id);
   return this->lookupNode(node_id);
@@ -33,27 +34,29 @@ void ETFeeder::pushBackIssuableNode(uint64_t node_id) {
   this->dependancy_resolver.push_back_node(node_id);
 }
 
-std::shared_ptr<ETFeederNode> ETFeeder::lookupNode(uint64_t node_id) {}
+std::shared_ptr<ETFeederNode> ETFeeder::lookupNode(uint64_t node_id) {
+  return std::make_shared<ETFeederNode>(*this, node_id);
+}
 
 void ETFeeder::freeChildrenNodes(uint64_t node_id) {
   this->dependancy_resolver.finish_node(node_id);
 }
 
 uint64_t ETFeeder::_operator_id_cnt = 0;
-Cache<std::tuple<ETFeeder, NodeId>, ChakraNode> ETFeeder::_node_cache(
-    ETFeeder::DEFAULT_CACHE_SIZE);
+Cache<std::tuple<ETFeederId, NodeId>, ChakraNode> ETFeeder::_node_cache(
+    DEFAULT_CACHE_SIZE);
 
 void ETFeeder::build_index_cache() {
   this->chakra_file.clear();
   this->chakra_file.seekg(0, std::ios::beg);
   ChakraNode node;
   bool ret =
-      ProtobufUtils::readMessage(this->chakra_file, this->global_metadata);
+      ProtobufUtils::readMessage<ChakraGlobalMetadata>(this->chakra_file, this->global_metadata);
   if (!ret)
     throw std::runtime_error("Failed to read global metadata");
   std::streampos last_pos = this->chakra_file.tellg();
   while (true) {
-    ret = ProtobufUtils::readMessage(this->chakra_file, node);
+    ret = ProtobufUtils::readMessage<ChakraNode>(this->chakra_file, node);
     if (!ret)
       break;
     const auto& node_id = node.id();
@@ -64,10 +67,9 @@ void ETFeeder::build_index_cache() {
   this->chakra_file.seekg(0, std::ios::beg);
 }
 
-const std::shared_ptr<const ChakraNode> ETFeeder::get_raw_chakra_node(
-    NodeId node_id) {
+std::shared_ptr<ChakraNode> ETFeeder::get_raw_chakra_node(NodeId node_id) {
   auto key = std::make_tuple(this->_operator_id, node_id);
-  const auto node = ETFeeder::_node_cache.get_or_null_locked(key);
+  auto node = ETFeeder::_node_cache.get_or_null_locked(key);
   if (node) {
     // hit
     return node;
@@ -77,10 +79,11 @@ const std::shared_ptr<const ChakraNode> ETFeeder::get_raw_chakra_node(
   if (this->index_map.find(node_id) == this->index_map.end())
     throw std::runtime_error(
         "Node " + std::to_string(node_id) + " not found in index");
-  const auto& pos = this->index_map[node_id];
+  auto& pos = this->index_map[node_id];
   this->chakra_file.seekg(pos);
   ChakraNode node_msg;
-  ProtobufUtils::readMessage(this->chakra_file, node_msg);
+  ProtobufUtils::readMessage<ChakraNode>(this->chakra_file, node_msg);
   ETFeeder::_node_cache.put(key, node_msg);
   return ETFeeder::_node_cache.get_locked(key);
 }
+
