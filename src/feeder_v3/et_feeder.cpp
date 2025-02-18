@@ -24,7 +24,7 @@ bool ETFeeder::hasNodesToIssue() {
 }
 
 std::shared_ptr<ETFeederNode> ETFeeder::getNextIssuableNode() {
-  auto& node_id =
+  const auto node_id =
       *(this->dependancy_resolver.get_dependancy_free_nodes().begin());
   this->dependancy_resolver.take_node(node_id);
   return this->lookupNode(node_id);
@@ -46,7 +46,7 @@ uint64_t ETFeeder::_operator_id_cnt = 0;
 Cache<std::tuple<ETFeederId, NodeId>, ChakraNode> ETFeeder::_node_cache(
     DEFAULT_ETFEEDER_CACHE_SIZE);
 
-void ETFeeder::build_index_cache() {
+void ETFeeder::build_index_dependancy_cache() {
   this->chakra_file.clear();
   this->chakra_file.seekg(0, std::ios::beg);
   ChakraNode node;
@@ -59,12 +59,16 @@ void ETFeeder::build_index_cache() {
     ret = ProtobufUtils::readMessage<ChakraNode>(this->chakra_file, node);
     if (!ret)
       break;
+    // build index
     const auto& node_id = node.id();
     this->index_map[node_id] = last_pos;
     last_pos = this->chakra_file.tellg();
+    // build dependancy
+    this->dependancy_resolver.add_node(node);
   }
   this->chakra_file.clear();
   this->chakra_file.seekg(0, std::ios::beg);
+  this->dependancy_resolver.resolve_dependancy_free_nodes();
 }
 
 std::shared_ptr<const ChakraNode> ETFeeder::get_raw_chakra_node(
@@ -86,4 +90,29 @@ std::shared_ptr<const ChakraNode> ETFeeder::get_raw_chakra_node(
   ProtobufUtils::readMessage<ChakraNode>(this->chakra_file, node_msg);
   ETFeeder::_node_cache.put(key, node_msg);
   return ETFeeder::_node_cache.get_locked(key);
+}
+
+void ETFeeder::graph_sanity_check() {
+  // check if all nodes in dependancy graph exists.
+  const auto& data_dep = this->dependancy_resolver.get_data_dependancy();
+  const auto& ctrl_dep = this->dependancy_resolver.get_ctrl_dependancy();
+  const auto& enabled_dep = this->dependancy_resolver.get_enabled_dependancy();
+  for (const auto& node : data_dep.get_dependancy_free_nodes()) {
+    if (this->index_map.find(node) == this->index_map.end())
+      throw std::runtime_error(
+          "Node " + std::to_string(node) +
+          " in data_dep graph, but not found in index, file might be corrupted");
+  }
+  for (const auto& node : ctrl_dep.get_dependancy_free_nodes()) {
+    if (this->index_map.find(node) == this->index_map.end())
+      throw std::runtime_error(
+          "Node " + std::to_string(node) +
+          " in ctrl_dep graph, but not found in index, file might be corrupted");
+  }
+  for (const auto& node : enabled_dep.get_dependancy_free_nodes()) {
+    if (this->index_map.find(node) == this->index_map.end())
+      throw std::runtime_error(
+          "Node " + std::to_string(node) +
+          " in all_dep graph, but not found in index, file might be corrupted");
+  }
 }

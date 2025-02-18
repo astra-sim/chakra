@@ -31,13 +31,14 @@ namespace FeederV3 {
 class ETFeeder {
  public:
   ChakraGlobalMetadata global_metadata;
-  ETFeeder(std::string& file_path)
+  ETFeeder(const std::string& file_path)
       : chakra_file(file_path, std::ios::binary | std::ios::in | std::ios::app),
         _operator_id(_operator_id_cnt++),
-        dependancy_resolver(USE_DATA_DEPS, USE_CTRL_DEPS) {
+        dependancy_resolver(RESOLVE_DATA_DEPS, RESOLVE_CTRL_DEPS) {
     if (!chakra_file.is_open())
       throw std::runtime_error("Failed to open file " + file_path);
-    this->build_index_cache();
+    this->build_index_dependancy_cache();
+    this->graph_sanity_check();   // make sure graph is sane
   }
 
   ~ETFeeder() {
@@ -61,19 +62,22 @@ class ETFeeder {
   void removeNode(const NodeId& node_id);
 
  private:
+  std::ifstream chakra_file;
+
   static uint64_t _operator_id_cnt;
   uint64_t _operator_id;
 
   // shared global cache for storing chakra msgs.
   static Cache<std::tuple<ETFeederId, NodeId>, ChakraNode> _node_cache;
 
-  std::ifstream chakra_file;
   std::unordered_map<NodeId, std::streampos> index_map;
   DependancyResolver dependancy_resolver;
 
-  void build_index_cache();
+  void build_index_dependancy_cache();
   std::shared_ptr<const ChakraNode> get_raw_chakra_node(NodeId node_id);
   friend class ETFeederNode;
+
+  void graph_sanity_check();
 };
 } // namespace FeederV3
 } // namespace Chakra

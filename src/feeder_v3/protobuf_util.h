@@ -33,8 +33,10 @@ class ProtobufUtils {
       return false;
     static char buffer[DEFAULT_PROTOBUF_BUFFER_SIZE];
     uint32_t size;
+    lock.unlock();
     if (!readVarint32(f, size))
       return false;
+    lock.lock();
     char* buffer_use = buffer;
     if (size > DEFAULT_PROTOBUF_BUFFER_SIZE - 1) {
       // buffer is not large enough, use a dynamic buffer
@@ -71,12 +73,16 @@ class ProtobufUtils {
       // buffer is not large enough, use a dynamic buffer
       char* buffer_use = new char[size];
       msg.SerializeToArray(buffer_use, size);
+      lock.unlock();
       writeVarint32(f, size);
+      lock.lock();
       f.write(buffer_use, size);
       delete[] buffer_use;
     } else {
       msg.SerializeToArray(buffer, size);
+      lock.unlock();
       writeVarint32(f, size);
+      lock.lock();
       f.write(buffer, size);
     }
     return true;

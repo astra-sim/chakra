@@ -14,7 +14,7 @@ template <typename K, typename V>
 class Cache {
  public:
   Cache(size_t capacity) : capacity(capacity) {}
-  void put(const K& key, V& value) {
+  void put(const K& key, const V& value) {
     std::unique_lock lock(cache_mutex);
     if (this->cache.find(key) != this->cache.end()) {
       // hit and update

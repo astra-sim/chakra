@@ -9,33 +9,41 @@ using namespace Chakra::FeederV3;
 void _DependancyLayer::add_node(
     const NodeId& node,
     const std::unordered_set<NodeId>& parents) {
-  this->mutex.lock();
+  std::unique_lock<std::shared_mutex> lock(this->mutex);
+  this->dirty = true;
   this->_helper_allocate_bucket(node);
   for (auto& parent : parents) {
     this->_helper_allocate_bucket(parent);
-    this->child_map_parent[parent].insert(node);
-    this->parent_map_child[node].insert(parent);
+    this->child_map_parent[node].insert(parent);
+    this->parent_map_child[parent].insert(node);
   }
 }
 
 void _DependancyLayer::add_node_children(
     const NodeId& node,
     const std::unordered_set<NodeId>& children) {
-  this->mutex.lock();
+  std::unique_lock<std::shared_mutex> lock(this->mutex);
+  this->dirty = true;
   this->_helper_allocate_bucket(node);
   for (auto& child : children) {
     this->_helper_allocate_bucket(child);
-    this->child_map_parent[node].insert(child);
-    this->parent_map_child[child].insert(node);
+    this->child_map_parent[child].insert(node);
+    this->parent_map_child[node].insert(child);
   }
 }
 
 void _DependancyLayer::take_node(const NodeId& node) {
-  this->mutex.lock();
+  std::unique_lock<std::shared_mutex> lock(this->mutex);
+  if (this->dirty) {
+    throw std::runtime_error(
+        "dependancy layer is dirty, resolve_dependancy_free_nodes should be called first");
+  }
   if (this->dependancy_free_nodes.find(node) ==
       this->dependancy_free_nodes.end()) {
+    const auto& parents = this->child_map_parent[node];
     throw std::runtime_error(
-        "Node is not dependancy free or already taken/released");
+        "Node " + std::to_string(node) +
+        " is not dependancy free or already taken/released");
   }
   if (this->ongoing_nodes.find(node) != this->ongoing_nodes.end()) {
     throw std::runtime_error("Node is already taken");
@@ -45,7 +53,11 @@ void _DependancyLayer::take_node(const NodeId& node) {
 }
 
 void _DependancyLayer::finish_node(const NodeId& node) {
-  this->mutex.lock();
+  std::unique_lock<std::shared_mutex> lock(this->mutex);
+  if (this->dirty) {
+    throw std::runtime_error(
+        "dependancy layer is dirty, resolve_dependancy_free_nodes should be called first");
+  }
   if (this->ongoing_nodes.find(node) == this->ongoing_nodes.end()) {
     throw std::runtime_error("Node is not taken");
   }
@@ -67,7 +79,11 @@ void _DependancyLayer::finish_node(const NodeId& node) {
 }
 
 void _DependancyLayer::push_back_node(const NodeId& node) {
-  this->mutex.lock();
+  std::unique_lock<std::shared_mutex> lock(this->mutex);
+  if (this->dirty) {
+    throw std::runtime_error(
+        "dependancy layer is dirty, resolve_dependancy_free_nodes should be called first");
+  }
   if (this->ongoing_nodes.find(node) == this->ongoing_nodes.end()) {
     throw std::runtime_error("Node is not taken");
   }
@@ -76,7 +92,7 @@ void _DependancyLayer::push_back_node(const NodeId& node) {
 }
 
 void _DependancyLayer::resolve_dependancy_free_nodes() {
-  this->mutex.lock();
+  std::unique_lock<std::shared_mutex> lock(this->mutex);
   if ((!this->dependancy_free_nodes.empty()) || (!this->ongoing_nodes.empty()))
     throw std::runtime_error(
         "resolve_dependancy_free_nodes after initialization is not supported yet!");
@@ -89,6 +105,7 @@ void _DependancyLayer::resolve_dependancy_free_nodes() {
   if (this->dependancy_free_nodes.empty())
     throw std::runtime_error(
         "No dependancy free nodes found, there might be deadlocks");
+  this->dirty = false;
 }
 
 const std::unordered_set<NodeId>& _DependancyLayer::get_dependancy_free_nodes()
@@ -98,12 +115,13 @@ const std::unordered_set<NodeId>& _DependancyLayer::get_dependancy_free_nodes()
 
 const std::unordered_set<NodeId>& _DependancyLayer::get_children(
     NodeId node) const {
-  return this->child_map_parent.at(node);
+  const auto& results = this->parent_map_child.at(node);
+  return this->parent_map_child.at(node);
 }
 
 const std::unordered_set<NodeId>& _DependancyLayer::get_parents(
     NodeId node) const {
-  return this->parent_map_child.at(node);
+  return this->child_map_parent.at(node);
 }
 
 void _DependancyLayer::_helper_allocate_bucket(NodeId node_id) {
@@ -153,6 +171,12 @@ void DependancyResolver::finish_node(const NodeId& node) {
   this->data_dependancy.finish_node(node);
   this->ctrl_dependancy.finish_node(node);
   this->enabled_dependancy.finish_node(node);
+}
+
+void DependancyResolver::resolve_dependancy_free_nodes() {
+  this->data_dependancy.resolve_dependancy_free_nodes();
+  this->ctrl_dependancy.resolve_dependancy_free_nodes();
+  this->enabled_dependancy.resolve_dependancy_free_nodes();
 }
 
 const std::unordered_set<NodeId>& DependancyResolver::
