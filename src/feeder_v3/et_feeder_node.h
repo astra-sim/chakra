@@ -39,17 +39,16 @@ class ETFeederNode {
       const std::string& attr_name,
       const bool strict_type = DEFAULT_STRICT_TYPING) const;
 
-#define REGISTER_ATTR_WITH_DEFAULT(attr_name, system_default_value)           \
-  template <typename T>                                                       \
-  T attr_name(const bool strict_type = DEFAULT_STRICT_TYPING) const {         \
-    return this->get_attr<T>(                                                 \
-        #attr_name, (system_default_value), strict_type);                    \
-  }                                                                           \
-  template <typename T>                                                       \
-  T attr_name(                                                                \
-      const T& default_value, const bool strict_type = DEFAULT_STRICT_TYPING) \
-      const {                                                                 \
-    return this->get_attr<T>(#attr_name, default_value, strict_type);         \
+#define REGISTER_ATTR_WITH_DEFAULT(attr_name, system_default_value)            \
+  template <typename T>                                                        \
+  T attr_name(const bool strict_type = DEFAULT_STRICT_TYPING) const {          \
+    return this->get_attr<T>(#attr_name, (system_default_value), strict_type); \
+  }                                                                            \
+  template <typename T>                                                        \
+  T attr_name(                                                                 \
+      const T& default_value, const bool strict_type = DEFAULT_STRICT_TYPING)  \
+      const {                                                                  \
+    return this->get_attr<T>(#attr_name, default_value, strict_type);          \
   }
 
 #define REGISTER_ATTR(attr_name)                                              \
@@ -64,26 +63,13 @@ class ETFeederNode {
     return this->get_attr<T>(#attr_name, default_value, strict_type);         \
   }
 
+// please mod the following header to add any new attributes
+#include "et_feeder_node_attr.h"
+
   NodeId id() const;
   std::string name() const;
   ChakraProtoMsg::NodeType type() const;
   uint64_t runtime() const;
-
-  // new interface
-  REGISTER_ATTR_WITH_DEFAULT(is_cpu_op, false)
-  REGISTER_ATTR(num_ops)
-  REGISTER_ATTR_WITH_DEFAULT(tensor_loc, 0u)
-  REGISTER_ATTR(tensor_size)
-  REGISTER_ATTR(comm_type)
-  REGISTER_ATTR_WITH_DEFAULT(comm_priority, 0u)
-  REGISTER_ATTR(comm_size)
-  REGISTER_ATTR(comm_src)
-  REGISTER_ATTR(comm_dst)
-  REGISTER_ATTR(comm_tag)
-  REGISTER_ATTR(pg_name)
-
-#undef REGISTER_ATTR
-#undef REGISTER_ATTR_WITH_DEFAULT
 
   // old interface
   bool is_cpu_op() const;
@@ -107,7 +93,8 @@ class ETFeederNode {
     }
 
     template <typename F>
-    static std::enable_if_t<!std::is_same_v<F, T>, T> strict_converter(F value) {
+    static std::enable_if_t<!std::is_same_v<F, T>, T> strict_converter(
+        F value) {
       throw std::bad_cast();
     }
 
@@ -137,12 +124,14 @@ class ETFeederNode {
     }
 
     template <typename F>
-    static std::enable_if_t<std::is_convertible_v<F, T>, T> implicit_converter(F value) {
+    static std::enable_if_t<std::is_convertible_v<F, T>, T> implicit_converter(
+        F value) {
       return static_cast<T>(value);
     }
 
     template <typename F>
-    static std::enable_if_t<!std::is_convertible_v<F, T>, T> implicit_converter(F value) {
+    static std::enable_if_t<!std::is_convertible_v<F, T>, T> implicit_converter(
+        F value) {
       throw std::bad_cast();
     }
   };
@@ -198,8 +187,10 @@ T ETFeederNode::get_attr(const ChakraAttr& attr, const bool strict_type) const {
         return cvt(attr.bytes_val());
       default:
         // TODO: support list types
-        // TODO: maybe let use register their own converter for complicate types?
-        throw std::invalid_argument("Attribute type not supported, for list types please handle them manually");
+        // TODO: maybe let use register their own converter for complicate
+        // types?
+        throw std::invalid_argument(
+            "Attribute type not supported, for list types please handle them manually");
     }
   }
 }
