@@ -108,3 +108,53 @@ uint32_t ETFeederNode::comm_dst() const {
 uint32_t ETFeederNode::comm_tag() const {
   return this->comm_tag<uint32_t>();
 }
+
+std::string ETFeederNode::get_inputs_values(const std::string& default_) const {
+  auto node = this->get_chakra_node();
+  if (node->has_inputs()) {
+    return node->inputs().values();
+  }
+  return default_;
+}
+
+std::string ETFeederNode::get_inputs_shapes(const std::string& default_) const {
+  auto node = this->get_chakra_node();
+  if (node->has_inputs()) {
+    return node->inputs().shapes();
+  }
+  return default_;
+}
+
+std::string ETFeederNode::get_inputs_types(const std::string& default_) const {
+  auto node = this->get_chakra_node();
+  if (node->has_inputs()) {
+    return node->inputs().types();
+  }
+  return default_;
+}
+
+std::string ETFeederNode::get_outputs_values(
+    const std::string& default_) const {
+  auto node = this->get_chakra_node();
+  if (node->has_outputs()) {
+    return node->outputs().values();
+  }
+  return default_;
+}
+
+std::string ETFeederNode::get_outputs_shapes(
+    const std::string& default_) const {
+  auto node = this->get_chakra_node();
+  if (node->has_outputs()) {
+    return node->outputs().shapes();
+  }
+  return default_;
+}
+
+std::string ETFeederNode::get_outputs_types(const std::string& default_) const {
+  auto node = this->get_chakra_node();
+  if (node->has_outputs()) {
+    return node->outputs().types();
+  }
+  return default_;
+}

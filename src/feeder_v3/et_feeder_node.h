@@ -83,6 +83,13 @@ class ETFeederNode {
   uint32_t comm_dst() const;
   uint32_t comm_tag() const;
 
+  std::string get_inputs_values(const std::string& default_ = "") const;
+  std::string get_inputs_shapes(const std::string& default_ = "") const;
+  std::string get_inputs_types(const std::string& default_ = "") const;
+  std::string get_outputs_values(const std::string& default_ = "") const;
+  std::string get_outputs_shapes(const std::string& default_ = "") const;
+  std::string get_outputs_types(const std::string& default_ = "") const;
+
  private:
   template <typename T>
   class _TypeConverter {
