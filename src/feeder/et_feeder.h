@@ -10,10 +10,7 @@
 #include "protoio.hh"
 
 namespace Chakra {
-struct CompareNodes : public std::binary_function<
-                          std::shared_ptr<ETFeederNode>,
-                          std::shared_ptr<ETFeederNode>,
-                          bool> {
+struct CompareNodes {
   bool operator()(
       const std::shared_ptr<ETFeederNode> lhs,
       const std::shared_ptr<ETFeederNode> rhs) const {

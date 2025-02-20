@@ -48,63 +48,63 @@ ChakraAttr::ValueCase ETFeederNode::get_attr_type(
   return attr.value_case();
 }
 
-const NodeId ETFeederNode::id() const {
+NodeId ETFeederNode::id() const {
   auto node = this->get_chakra_node();
   return node->id();
 }
 
-const std::string ETFeederNode::name() const {
+std::string ETFeederNode::name() const {
   auto node = this->get_chakra_node();
   return node->name();
 }
 
-const ChakraProtoMsg::NodeType ETFeederNode::type() const {
+ChakraProtoMsg::NodeType ETFeederNode::type() const {
   auto node = this->get_chakra_node();
   return node->type();
 }
 
-const uint64_t ETFeederNode::runtime() const {
+uint64_t ETFeederNode::runtime() const {
   auto node = this->get_chakra_node();
   return node->duration_micros();
 }
 
 bool ETFeederNode::is_cpu_op() const {
-  return this->get_attr<bool>("is_cpu_op");
+  return this->is_cpu_op<bool>();
 }
 
 uint64_t ETFeederNode::num_ops() const {
-  return this->get_attr<uint64_t>("num_ops");
+  return this->num_ops<uint64_t>();
 }
 
 uint32_t ETFeederNode::tensor_loc() const {
-  return this->get_attr<uint32_t>("tensor_loc");
+  return this->tensor_loc<uint32_t>();
 }
 
 uint64_t ETFeederNode::tensor_size() const {
-  return this->get_attr<uint64_t>("tensor_size");
+  return this->tensor_size<uint64_t>();
 }
 
 ChakraProtoMsg::CollectiveCommType ETFeederNode::comm_type() const {
   return static_cast<ChakraProtoMsg::CollectiveCommType>(
-      this->get_attr<uint64_t>("comm_type"));
+      this->comm_type<uint64_t>());
 }
 
 uint32_t ETFeederNode::comm_priority() const {
-  return this->get_attr<uint32_t>("comm_priority");
+  return this->comm_priority<uint32_t>();
 }
 
 uint64_t ETFeederNode::comm_size() const {
-  return this->get_attr<uint64_t>("comm_size");
+  return this->comm_size<uint64_t>();
 }
 
 uint32_t ETFeederNode::comm_src() const {
-  return this->get_attr<uint32_t>("comm_src");
+  return this->comm_src<uint32_t>();
 }
 
 uint32_t ETFeederNode::comm_dst() const {
-  return this->get_attr<uint32_t>("comm_dst");
+  return this->comm_dst<uint32_t>();
 }
 
 uint32_t ETFeederNode::comm_tag() const {
-  return this->get_attr<uint32_t>("comm_tag");
+  return this->comm_tag<uint32_t>();
 }

@@ -43,7 +43,7 @@ class ETFeederNode {
   template <typename T>                                                       \
   T attr_name(const bool strict_type = DEFAULT_STRICT_TYPING) const {         \
     return this->get_attr<T>(                                                 \
-        #attr_name, (#system_default_value), strict_type);                    \
+        #attr_name, (system_default_value), strict_type);                    \
   }                                                                           \
   template <typename T>                                                       \
   T attr_name(                                                                \
@@ -64,10 +64,10 @@ class ETFeederNode {
     return this->get_attr<T>(#attr_name, default_value, strict_type);         \
   }
 
-  const NodeId id() const;
-  const std::string name() const;
-  const ChakraProtoMsg::NodeType type() const;
-  const uint64_t runtime() const;
+  NodeId id() const;
+  std::string name() const;
+  ChakraProtoMsg::NodeType type() const;
+  uint64_t runtime() const;
 
   // new interface
   REGISTER_ATTR_WITH_DEFAULT(is_cpu_op, false)
@@ -79,7 +79,8 @@ class ETFeederNode {
   REGISTER_ATTR(comm_size)
   REGISTER_ATTR(comm_src)
   REGISTER_ATTR(comm_dst)
-  REGISTER_ATTR_WITH_DEFAULT(comm_tag, 0u)
+  REGISTER_ATTR(comm_tag)
+  REGISTER_ATTR(pg_name)
 
 #undef REGISTER_ATTR
 #undef REGISTER_ATTR_WITH_DEFAULT
@@ -101,12 +102,15 @@ class ETFeederNode {
   class _TypeConverter {
    public:
     template <typename F>
-    static T strict_converter(F value) {
-      if constexpr (!std::is_same_v<F, T>) {
-        throw std::bad_cast();
-      }
-      return static_cast<T>(value);
+    static std::enable_if_t<std::is_same_v<F, T>, T> strict_converter(F value) {
+      return value;
     }
+
+    template <typename F>
+    static std::enable_if_t<!std::is_same_v<F, T>, T> strict_converter(F value) {
+      throw std::bad_cast();
+    }
+
     template <typename F>
     static T flagged_implicit_converter(F value) {
       if constexpr (std::is_integral_v<T>) {
@@ -129,11 +133,17 @@ class ETFeederNode {
             ALLOW_IMPLICIT_INTEGER_TO_FLOAT_CONVERSION && std::is_integral_v<F>)
           return static_cast<T>(value);
       }
-      throw std::bad_cast();
+      return strict_converter(value);
     }
+
     template <typename F>
-    static T implicit_converter(F value) {
+    static std::enable_if_t<std::is_convertible_v<F, T>, T> implicit_converter(F value) {
       return static_cast<T>(value);
+    }
+
+    template <typename F>
+    static std::enable_if_t<!std::is_convertible_v<F, T>, T> implicit_converter(F value) {
+      throw std::bad_cast();
     }
   };
   // ETFeederNode only store minimal thing to reduce memory usage.
@@ -182,8 +192,14 @@ T ETFeederNode::get_attr(const ChakraAttr& attr, const bool strict_type) const {
         return cvt(attr.sfixed64_val());
       case ChakraAttr::kBoolVal:
         return cvt(attr.bool_val());
+      case ChakraAttr::kStringVal:
+        return cvt(attr.string_val());
+      case ChakraAttr::kBytesVal:
+        return cvt(attr.bytes_val());
       default:
-        throw std::invalid_argument("Attribute type not supported");
+        // TODO: support list types
+        // TODO: maybe let use register their own converter for complicate types?
+        throw std::invalid_argument("Attribute type not supported, for list types please handle them manually");
     }
   }
 }
