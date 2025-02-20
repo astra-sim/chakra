@@ -42,6 +42,7 @@ class _DependancyLayer {
   void resolve_dependancy_free_nodes();
 
   const std::unordered_set<NodeId>& get_dependancy_free_nodes() const;
+  const std::unordered_set<NodeId>& get_ongoing_nodes() const;
   const std::unordered_set<NodeId>& get_children(NodeId node) const;
   const std::unordered_set<NodeId>& get_parents(NodeId node) const;
 
@@ -71,6 +72,7 @@ class DependancyResolver {
   void resolve_dependancy_free_nodes();
 
   const std::unordered_set<NodeId>& get_dependancy_free_nodes() const;
+  const std::unordered_set<NodeId>& get_ongoing_nodes() const;
   const _DependancyLayer& get_data_dependancy() const;
   const _DependancyLayer& get_ctrl_dependancy() const;
   const _DependancyLayer& get_enabled_dependancy() const;

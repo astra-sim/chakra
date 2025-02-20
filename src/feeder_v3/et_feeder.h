@@ -38,7 +38,7 @@ class ETFeeder {
     if (!chakra_file.is_open())
       throw std::runtime_error("Failed to open file " + file_path);
     this->build_index_dependancy_cache();
-    this->graph_sanity_check();   // make sure graph is sane
+    this->graph_sanity_check(); // make sure graph is sane
   }
 
   ~ETFeeder() {

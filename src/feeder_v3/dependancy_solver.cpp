@@ -124,6 +124,10 @@ const std::unordered_set<NodeId>& _DependancyLayer::get_parents(
   return this->child_map_parent.at(node);
 }
 
+const std::unordered_set<NodeId>& _DependancyLayer::get_ongoing_nodes() const {
+  return this->ongoing_nodes;
+}
+
 void _DependancyLayer::_helper_allocate_bucket(NodeId node_id) {
   if (this->child_map_parent.find(node_id) == this->child_map_parent.end()) {
     this->child_map_parent[node_id] = std::unordered_set<NodeId>();
@@ -182,6 +186,11 @@ void DependancyResolver::resolve_dependancy_free_nodes() {
 const std::unordered_set<NodeId>& DependancyResolver::
     get_dependancy_free_nodes() const {
   return this->enabled_dependancy.get_dependancy_free_nodes();
+}
+
+const std::unordered_set<NodeId>& DependancyResolver::get_ongoing_nodes()
+    const {
+  return this->enabled_dependancy.get_ongoing_nodes();
 }
 
 const _DependancyLayer& DependancyResolver::get_data_dependancy() const {

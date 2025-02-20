@@ -29,38 +29,29 @@ class ETFeederNode {
       const bool strict_type = DEFAULT_STRICT_TYPING) const;
 
   template <typename T>
-  T get_attr(
-      const std::string& attr_name,
-      const T& default_value,
-      const bool strict_type = DEFAULT_STRICT_TYPING) const;
+  T get_attr(const std::string& attr_name, const T& default_value) const;
 
   template <typename T>
-  T get_attr(
-      const std::string& attr_name,
-      const bool strict_type = DEFAULT_STRICT_TYPING) const;
+  T get_attr(const std::string& attr_name) const;
 
-#define REGISTER_ATTR_WITH_DEFAULT(attr_name, system_default_value)            \
-  template <typename T>                                                        \
-  T attr_name(const bool strict_type = DEFAULT_STRICT_TYPING) const {          \
-    return this->get_attr<T>(#attr_name, (system_default_value), strict_type); \
-  }                                                                            \
-  template <typename T>                                                        \
-  T attr_name(                                                                 \
-      const T& default_value, const bool strict_type = DEFAULT_STRICT_TYPING)  \
-      const {                                                                  \
-    return this->get_attr<T>(#attr_name, default_value, strict_type);          \
+#define REGISTER_ATTR_WITH_DEFAULT(attr_name, system_default_value) \
+  template <typename T>                                             \
+  T attr_name() const {                                             \
+    return this->get_attr<T>(#attr_name, (system_default_value));   \
+  }                                                                 \
+  template <typename T>                                             \
+  T attr_name(const T& default_value) const {                       \
+    return this->get_attr<T>(#attr_name, default_value);            \
   }
 
-#define REGISTER_ATTR(attr_name)                                              \
-  template <typename T>                                                       \
-  T attr_name(const bool strict_type = DEFAULT_STRICT_TYPING) const {         \
-    return this->get_attr<T>(#attr_name, strict_type);                        \
-  }                                                                           \
-  template <typename T>                                                       \
-  T attr_name(                                                                \
-      const T& default_value, const bool strict_type = DEFAULT_STRICT_TYPING) \
-      const {                                                                 \
-    return this->get_attr<T>(#attr_name, default_value, strict_type);         \
+#define REGISTER_ATTR(attr_name)                         \
+  template <typename T>                                  \
+  T attr_name() const {                                  \
+    return this->get_attr<T>(#attr_name);                \
+  }                                                      \
+  template <typename T>                                  \
+  T attr_name(const T& default_value) const {            \
+    return this->get_attr<T>(#attr_name, default_value); \
   }
 
 // please mod the following header to add any new attributes
@@ -203,25 +194,22 @@ T ETFeederNode::get_attr(const ChakraAttr& attr, const bool strict_type) const {
 }
 
 template <typename T>
-T ETFeederNode::get_attr(
-    const std::string& attr_name,
-    const T& default_value,
-    const bool strict_type) const {
+T ETFeederNode::get_attr(const std::string& attr_name, const T& default_value)
+    const {
   // option 1 or 3: user provide default value or systemwise default value
   if (this->has_attr(attr_name)) {
     const auto attr = this->get_attr_msg(attr_name);
-    return this->get_attr<T>(attr, strict_type);
+    return this->get_attr<T>(attr, DEFAULT_STRICT_TYPING);
   }
   return default_value;
 }
 
 template <typename T>
-T ETFeederNode::get_attr(const std::string& attr_name, const bool strict_type)
-    const {
+T ETFeederNode::get_attr(const std::string& attr_name) const {
   // option 2: throw complaints
   if (this->has_attr(attr_name)) {
     const auto attr = this->get_attr_msg(attr_name);
-    return this->get_attr<T>(attr, strict_type);
+    return this->get_attr<T>(attr, DEFAULT_STRICT_TYPING);
   }
   throw std::runtime_error(
       "Attribute " + attr_name + " not found in node " +
