@@ -79,6 +79,8 @@ class ETFeeder {
 
   void graph_sanity_check();
 };
+using ETFeeder = FeederV3::ETFeeder;
+
 } // namespace FeederV3
 } // namespace Chakra
 

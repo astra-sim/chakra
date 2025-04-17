@@ -215,8 +215,15 @@ T ETFeederNode::get_attr(const std::string& attr_name) const {
       "Attribute " + attr_name + " not found in node " +
       std::to_string(this->node_id));
 }
+template <>
+inline ChakraAttr ETFeederNode::get_attr<ChakraAttr>(
+    const ChakraAttr& attr,
+    const bool /*strict_type*/) const {
+  return attr;
+}
 
 } // namespace FeederV3
+using ETFeederNode = FeederV3::ETFeederNode;
 } // namespace Chakra
 
 #endif
