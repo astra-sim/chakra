@@ -1,9 +1,9 @@
-from distutils.command.build import build
+from setuptools.command.build import build as _build
 
 from setuptools import setup
 
 
-class build_grpc(build):
+class custom_build(_build):
     """
     Custom build class to include gRPC build commands.
 
@@ -14,7 +14,7 @@ class build_grpc(build):
         sub_commands (list): List of sub-commands to be executed during the build process.
     """
 
-    sub_commands = [("build_grpc", None)] + build.sub_commands
+    sub_commands = [("build_grpc", None)] + _build.sub_commands
 
 
-setup(cmdclass={"build": build_grpc})
+setup(cmdclass={"build": custom_build})
