@@ -41,7 +41,7 @@ Installing Holistic Trace Analysis is necessary for Trace link.
 ```bash
 $ git clone https://github.com/facebookresearch/HolisticTraceAnalysis.git
 $ cd HolisticTraceAnalysis
-$ git checkout d731cc2e2249976c97129d409a83bd53d93051f6
+$ git checkout v0.5.0
 $ git submodule update --init
 $ pip install -r requirements.txt
 $ pip install -e .
