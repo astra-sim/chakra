@@ -1,10 +1,12 @@
 [build-system]
-requires = ["setuptools", "setuptools-grpc"]
+requires = [ "setuptools>=61",
+  "wheel",
+  "setuptools-grpc"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "chakra"
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 version = "0.0.4"
 readme = "README.md"
 license = {file = "LICENSE.md"}
@@ -12,10 +14,16 @@ authors = [
     {name = "MLCommons", email = "chakra@mlcommons.org"},
 ]
 dependencies = [
-    "protobuf==5.*",
+    "protobuf"
+]
+
+[project.optional-dependencies]
+visualizer = [
     "graphviz",
     "networkx",
-    "pydot",
+    "pydot"
+]
+trace_link = [
     "HolisticTraceAnalysis @ git+https://github.com/facebookresearch/HolisticTraceAnalysis.git@d731cc2e2249976c97129d409a83bd53d93051f6"
 ]
 
