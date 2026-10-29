@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: 2026 Advanced Micro Devices, Inc.
+
 #pragma once
 
 #include <memory>
@@ -5,7 +8,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include "et_def.pb.h"
+#include <et_def.pb.h>
 
 namespace Chakra {
 
@@ -38,7 +41,10 @@ class ETFeederNode {
   uint32_t comm_src();
   uint32_t comm_dst();
   uint32_t comm_tag();
-  std::string pg_name();
+  uint32_t comm_src_off();
+  uint32_t comm_dst_off();
+  const std::string& custom_comm_plan_file();
+  void set_custom_comm_plan_file(const std::string& plan_file);
 
  private:
   void assign_attr_val(
@@ -53,20 +59,22 @@ class ETFeederNode {
   std::unordered_map<std::string, const ChakraProtoMsg::AttributeProto&>
       other_attrs_{};
 
-  uint64_t id_;
-  std::string name_;
-  bool is_cpu_op_;
-  uint64_t runtime_;
-  uint64_t num_ops_;
-  uint32_t tensor_loc_;
-  uint64_t tensor_size_;
-  ChakraProtoMsg::CollectiveCommType comm_type_;
-  uint32_t comm_priority_;
-  uint64_t comm_size_;
-  uint32_t comm_src_;
-  uint32_t comm_dst_;
-  uint32_t comm_tag_;
-  std::string pg_name_;
+  uint64_t id_ = 0;
+  std::string name_ = "";
+  bool is_cpu_op_ = false;
+  uint64_t runtime_ = 0;
+  uint64_t num_ops_ = 0;
+  uint32_t tensor_loc_ = 0;
+  uint64_t tensor_size_ = 0;
+  ChakraProtoMsg::CollectiveCommType comm_type_ = ChakraProtoMsg::INVALID_COMM;
+  uint32_t comm_priority_ = 0;
+  uint64_t comm_size_ = 0;
+  uint32_t comm_src_ = 0;
+  uint32_t comm_dst_ = 0;
+  uint32_t comm_tag_ = 0;
+  uint32_t comm_src_off_ = 0;
+  uint32_t comm_dst_off_ = 0;
+  std::string custom_comm_plan_file_ = "";
 };
 
 } // namespace Chakra

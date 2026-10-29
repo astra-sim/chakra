@@ -1,5 +1,7 @@
-#ifndef CHAKRA_FEEDER_V3_CACHE_H
-#define CHAKRA_FEEDER_V3_CACHE_H
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: 2026 Advanced Micro Devices, Inc.
+
+#pragma once
 
 #include <list>
 #include <memory>
@@ -97,5 +99,3 @@ class Cache {
 
 } // namespace FeederV3
 } // namespace Chakra
-
-#endif

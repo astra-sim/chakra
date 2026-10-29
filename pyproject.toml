@@ -12,11 +12,12 @@ authors = [
     {name = "MLCommons", email = "chakra@mlcommons.org"},
 ]
 dependencies = [
-    "protobuf==5.*",
+    "protobuf",
     "graphviz",
     "networkx",
     "pydot",
-    "HolisticTraceAnalysis @ git+https://github.com/facebookresearch/HolisticTraceAnalysis.git@d731cc2e2249976c97129d409a83bd53d93051f6"
+    "numpy",
+    "HolisticTraceAnalysis @ git+https://github.com/facebookresearch/HolisticTraceAnalysis.git@v0.5.0"
 ]
 
 [project.urls]
@@ -81,8 +82,13 @@ exclude = [
     "**/__pycache__",
     "**/build/",
     "setup.py",
-    "src/third_party/utils/protolib.py"
+    "src/third_party/utils/protolib.py",
+    "chakra_env",
+    "chakraenv"
 ]
+
+reportArgumentType = false
+reportOptionalMemberAccess = false
 reportMissingImports = false
 reportAttributeAccessIssue = false
 

@@ -1,10 +1,12 @@
-#ifndef CHAKRA_FEEDER_V3_ET_FEEDER_NODE_H
-#define CHAKRA_FEEDER_V3_ET_FEEDER_NODE_H
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: 2026 Advanced Micro Devices, Inc.
 
+#pragma once
+
+#include <et_def.pb.h>
+#include <feeder_v3/common.h>
 #include <functional>
 #include <memory>
-#include "common.h"
-#include "et_def.pb.h"
 
 namespace Chakra {
 namespace FeederV3 {
@@ -55,7 +57,7 @@ class ETFeederNode {
   }
 
 // please mod the following header to add any new attributes
-#include "et_feeder_node_attr.h"
+#include <feeder_v3/et_feeder_node_attr.h>
 
   NodeId id() const;
   std::string name() const;
@@ -227,5 +229,3 @@ inline ChakraAttr ETFeederNode::get_attr<ChakraAttr>(
 } // namespace FeederV3
 using ETFeederNode = FeederV3::ETFeederNode;
 } // namespace Chakra
-
-#endif

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: 2026 Advanced Micro Devices, Inc.
 
 import logging
 from io import TextIOWrapper
@@ -436,9 +438,3 @@ class TextConverter:
                             self.add_parent(bwd_ig_comm_node, bwd_ig_comp_node)
                             layers[0].bwd_ig_comm_node = bwd_ig_comm_node
                             encode_message(g, bwd_ig_comm_node)
-
-                for layer in layers:
-                    layer.bwd_wg_comm_node = None
-                    layer.bwd_wg_comp_node = None
-                    layer.bwd_ig_comm_node = None
-                    layer.bwd_ig_comp_node = None

@@ -1,10 +1,12 @@
-#ifndef CHAKRA_FEEDER_V3_PROTOBUF_UTIL_H
-#define CHAKRA_FEEDER_V3_PROTOBUF_UTIL_H
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: 2026 Advanced Micro Devices, Inc.
 
+#pragma once
+
+#include <feeder_v3/common.h>
 #include <cstdint>
 #include <iostream>
 #include <mutex>
-#include "common.h"
 
 namespace Chakra {
 namespace FeederV3 {
@@ -95,4 +97,3 @@ class ProtobufUtils {
 std::mutex ProtobufUtils::_mutex;
 } // namespace FeederV3
 } // namespace Chakra
-#endif

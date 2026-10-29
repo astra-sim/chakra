@@ -1,12 +1,14 @@
-#ifndef CHAKRA_FEEDER_V3_DEPENDANCY_SOLVER_H
-#define CHAKRA_FEEDER_V3_DEPENDANCY_SOLVER_H
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: 2026 Advanced Micro Devices, Inc.
 
+#pragma once
+
+#include <et_def.pb.h>
+#include <feeder_v3/common.h>
 #include <cstdint>
 #include <shared_mutex>
 #include <unordered_map>
 #include <unordered_set>
-#include "common.h"
-#include "et_def.pb.h"
 
 namespace Chakra {
 namespace FeederV3 {
@@ -93,5 +95,3 @@ class DependancyResolver {
 
 } // namespace FeederV3
 } // namespace Chakra
-
-#endif

@@ -1,4 +1,7 @@
-#include "et_feeder.h"
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: 2026 Advanced Micro Devices, Inc.
+
+#include <feeder/et_feeder.h>
 
 #include <iostream>
 
@@ -10,6 +13,9 @@ ETFeeder::ETFeeder(string filename)
   if (!trace_.is_open()) { // Assuming a method to check if file is open
     throw std::runtime_error("Failed to open trace file: " + filename);
   }
+
+  const auto slash = filename.rfind('/');
+  plan_base_dir_ = (slash == string::npos) ? "" : filename.substr(0, slash + 1);
 
   try {
     readGlobalMetadata();
@@ -101,6 +107,11 @@ shared_ptr<ETFeederNode> ETFeeder::readNode() {
     return nullptr;
   }
   shared_ptr<ETFeederNode> node = make_shared<ETFeederNode>(pkt_msg);
+
+  const string& plan_file = node->custom_comm_plan_file();
+  if (!plan_file.empty() && plan_file.front() != '/') {
+    node->set_custom_comm_plan_file(plan_base_dir_ + plan_file);
+  }
 
   bool dep_unresolved = false;
   for (int i = 0; i < pkt_msg->data_deps_size(); ++i) {

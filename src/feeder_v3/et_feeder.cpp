@@ -1,6 +1,9 @@
-#include "et_feeder.h"
-#include "common.h"
-#include "protobuf_util.h"
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: 2026 Advanced Micro Devices, Inc.
+
+#include <feeder_v3/common.h>
+#include <feeder_v3/et_feeder.h>
+#include <feeder_v3/protobuf_util.h>
 
 using namespace Chakra::FeederV3;
 

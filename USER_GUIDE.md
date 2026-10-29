@@ -31,7 +31,6 @@ Installing PARAM is necessary for Chakra to function properly as it imports esse
 ```bash
 $ git clone git@github.com:facebookresearch/param.git
 $ cd param/et_replay
-$ git checkout 7b19f586dd8b267333114992833a0d7e0d601630
 $ pip install .
 ```
 
@@ -41,7 +40,7 @@ Installing Holistic Trace Analysis is necessary for Trace link.
 ```bash
 $ git clone https://github.com/facebookresearch/HolisticTraceAnalysis.git
 $ cd HolisticTraceAnalysis
-$ git checkout d731cc2e2249976c97129d409a83bd53d93051f6
+$ git checkout v0.5.0
 $ git submodule update --init
 $ pip install -r requirements.txt
 $ pip install -e .

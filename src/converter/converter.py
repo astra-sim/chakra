@@ -1,8 +1,12 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: 2023 Advanced Micro Devices, Inc.
+
 import argparse
 import logging
 
 from .pytorch_converter import PyTorchConverter
 from .text_converter import TextConverter
+from .xml_converter import XmlConverter
 
 
 def setup_logging(log_filename: str) -> None:
@@ -34,6 +38,12 @@ def convert_pytorch(args: argparse.Namespace) -> None:
     """Convert PyTorch input trace to Chakra execution trace."""
     converter = PyTorchConverter()
     converter.convert(args.input, args.output, args.simulate)
+
+
+def convert_xml(args: argparse.Namespace) -> None:
+    """Convert an XML collective algorithm representation to Chakra execution trace."""
+    converter = XmlConverter(args.input, args.output, args.chunk_size)
+    converter.convert()
 
 
 def main() -> None:
@@ -105,6 +115,17 @@ def main() -> None:
         ),
     )
     text_parser.set_defaults(func=convert_text)
+
+    xml_parser = subparsers.add_parser(
+        "xml",
+        help="Convert a collective algorithm representation in XML to Chakra execution trace in the protobuf format",
+    )
+    xml_parser.add_argument("--input", type=str, required=True, help="Input XML collective algorithm filename")
+    xml_parser.add_argument(
+        "--output", type=str, required=True, help="Output Chakra execution trace filename in the protobuf format"
+    )
+    xml_parser.add_argument("--chunk-size", type=int, default=None, help="Individual chunk size in bytes")
+    xml_parser.set_defaults(func=convert_xml)
 
     args = parser.parse_args()
 

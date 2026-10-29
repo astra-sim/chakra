@@ -1,5 +1,8 @@
-#include "et_feeder_node.h"
-#include "et_feeder.h"
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: 2026 Advanced Micro Devices, Inc.
+
+#include <feeder_v3/et_feeder.h>
+#include <feeder_v3/et_feeder_node.h>
 
 using namespace Chakra::FeederV3;
 

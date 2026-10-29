@@ -1,4 +1,7 @@
-#include "et_feeder_node.h"
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: 2026 Advanced Micro Devices, Inc.
+
+#include <feeder/et_feeder_node.h>
 
 using namespace std;
 using namespace Chakra;
@@ -8,32 +11,36 @@ ETFeederNode::ETFeederNode(std::shared_ptr<ChakraProtoMsg::Node> node) {
   this->id_ = node->id();
   this->name_ = node->name();
   this->runtime_ = node->duration_micros();
-  this->is_cpu_op_ = 0;
+  this->is_cpu_op_ = 1;
 
   for (const auto& attr : node->attr()) {
     const string& attr_name = attr.name();
 
     if (attr_name == "is_cpu_op") {
-      this->is_cpu_op_ = static_cast<bool>(attr.bool_val());
+      this->is_cpu_op_ = attr.bool_val();
     } else if (attr_name == "num_ops") {
-      this->num_ops_ = static_cast<uint64_t>(attr.int64_val());
+      this->num_ops_ = attr.uint64_val();
     } else if (attr_name == "tensor_size") {
       this->tensor_size_ = attr.uint64_val();
     } else if (attr_name == "comm_type") {
       this->comm_type_ =
           static_cast<ChakraProtoMsg::CollectiveCommType>(attr.int64_val());
     } else if (attr_name == "comm_priority") {
-      this->comm_priority_ = static_cast<uint32_t>(attr.int32_val());
+      this->comm_priority_ = attr.uint32_val();
     } else if (attr_name == "comm_size") {
-      this->comm_size_ = static_cast<uint64_t>(attr.int64_val());
+      this->comm_size_ = attr.uint64_val();
     } else if (attr_name == "comm_src") {
-      this->comm_src_ = static_cast<uint32_t>(attr.int32_val());
+      this->comm_src_ = attr.uint32_val();
     } else if (attr_name == "comm_dst") {
-      this->comm_dst_ = static_cast<uint32_t>(attr.int32_val());
+      this->comm_dst_ = attr.uint32_val();
     } else if (attr_name == "comm_tag") {
-      this->comm_tag_ = static_cast<uint32_t>(attr.int32_val());
-    } else if (attr_name == "pg_name") {
-      this->pg_name_ = static_cast<string>(attr.string_val());
+      this->comm_tag_ = attr.uint32_val();
+    } else if (attr_name == "comm_src_off") {
+      this->comm_src_off_ = attr.uint32_val();
+    } else if (attr_name == "comm_dst_off") {
+      this->comm_dst_off_ = attr.uint32_val();
+    } else if (attr_name == "custom_comm_plan_file") {
+      this->custom_comm_plan_file_ = attr.string_val();
     } else {
       this->other_attrs_.emplace(attr_name, attr);
     }
@@ -141,6 +148,18 @@ uint32_t ETFeederNode::comm_tag() {
   return comm_tag_;
 }
 
-string ETFeederNode::pg_name() {
-  return pg_name_;
+uint32_t ETFeederNode::comm_src_off() {
+  return comm_src_off_;
+}
+
+uint32_t ETFeederNode::comm_dst_off() {
+  return comm_dst_off_;
+}
+
+const string& ETFeederNode::custom_comm_plan_file() {
+  return custom_comm_plan_file_;
+}
+
+void ETFeederNode::set_custom_comm_plan_file(const string& plan_file) {
+  custom_comm_plan_file_ = plan_file;
 }

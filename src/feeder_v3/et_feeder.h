@@ -1,16 +1,18 @@
-#ifndef CHAKRA_FEEDER_V3_ET_FEEDER_H
-#define CHAKRA_FEEDER_V3_ET_FEEDER_H
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: 2026 Advanced Micro Devices, Inc.
 
+#pragma once
+
+#include <et_def.pb.h>
+#include <feeder_v3/cache.h>
+#include <feeder_v3/common.h>
+#include <feeder_v3/dependancy_solver.h>
+#include <feeder_v3/et_feeder_node.h>
 #include <fstream>
 #include <functional>
 #include <memory>
 #include <string>
 #include <tuple>
-#include "cache.h"
-#include "common.h"
-#include "dependancy_solver.h"
-#include "et_def.pb.h"
-#include "et_feeder_node.h"
 
 namespace std {
 template <>
@@ -85,5 +87,3 @@ class ETFeeder {
 } // namespace FeederV3
 using ETFeeder = FeederV3::ETFeeder;
 } // namespace Chakra
-
-#endif

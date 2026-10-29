@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: 2026 Advanced Micro Devices, Inc.
+
 import argparse
 
 from ...schema.protobuf.et_def_pb2 import (
@@ -182,6 +185,33 @@ def two_comp_nodes_dependent(num_npus: int, runtime: int) -> None:
             encode_message(et, child_node)
 
 
+def comm_send_recv(num_npus: int, comm_size: int) -> None:
+    for npu_id in range(num_npus):
+        output_filename = f"send_recv.{npu_id}.et"
+        with open(output_filename, "wb") as et:
+            encode_message(et, GlobalMetadata(version="0.0.4"))
+
+            node = get_node("COMM_SEND_NODE", COMM_SEND_NODE)
+            node.attr.append(ChakraAttr(name="comm_src", uint64_val=npu_id))
+            if npu_id != num_npus - 1:
+                node.attr.append(ChakraAttr(name="comm_dst", uint64_val=npu_id + 1))
+            else:
+                node.attr.append(ChakraAttr(name="comm_dst", uint64_val=0))
+            node.attr.append(ChakraAttr(name="comm_tag", uint64_val=0))
+            node.attr.append(ChakraAttr(name="comm_size", uint64_val=comm_size))
+            encode_message(et, node)
+
+            node = get_node("COMM_RECV_NODE", COMM_RECV_NODE)
+            node.attr.append(ChakraAttr(name="comm_dst", uint64_val=npu_id))
+            if npu_id != 0:
+                node.attr.append(ChakraAttr(name="comm_src", uint64_val=npu_id - 1))
+            else:
+                node.attr.append(ChakraAttr(name="comm_src", uint64_val=num_npus - 1))
+            node.attr.append(ChakraAttr(name="comm_tag", uint64_val=0))
+            node.attr.append(ChakraAttr(name="comm_size", uint64_val=comm_size))
+            encode_message(et, node)
+
+
 def generate_comm_coll_node(num_npus: int, comm_size: int, comm_type: int, node_name: str) -> None:
     """Generate communication collective nodes."""
     for npu_id in range(num_npus):
@@ -195,34 +225,41 @@ def generate_comm_coll_node(num_npus: int, comm_size: int, comm_type: int, node_
             encode_message(et, node)
 
 
-def one_comm_coll_node_allreduce(num_npus: int, comm_size: int) -> None:
-    """Generate one AllReduce communication collective node."""
-    generate_comm_coll_node(num_npus, comm_size, ALL_REDUCE, "ALL_REDUCE")
+def generate_comm_coll_node_five_stack(num_npus: int, comm_size: int, comm_type: int, node_name: str) -> None:
+    """Generate communication collective nodes."""
+    for npu_id in range(num_npus):
+        output_filename = f"{node_name}.{npu_id}.et"
+        with open(output_filename, "wb") as et:
+            encode_message(et, GlobalMetadata(version="0.0.4"))
 
+            node1 = get_node(node_name, COMM_COLL_NODE)
+            node1.attr.append(ChakraAttr(name="is_cpu_op", bool_val=False))
+            node1.attr.extend([get_comm_type_attr(comm_type), ChakraAttr(name="comm_size", uint64_val=comm_size)])
+            encode_message(et, node1)
 
-def one_comm_coll_node_alltoall(num_npus: int, comm_size: int) -> None:
-    """Generate one AllToAll communication collective node."""
-    generate_comm_coll_node(num_npus, comm_size, ALL_TO_ALL, "ALL_TO_ALL")
+            node2 = get_node(node_name, COMM_COLL_NODE)
+            node2.attr.append(ChakraAttr(name="is_cpu_op", bool_val=False))
+            node2.attr.extend([get_comm_type_attr(comm_type), ChakraAttr(name="comm_size", uint64_val=comm_size)])
+            node2.data_deps.append(node1.id)
+            encode_message(et, node2)
 
+            node3 = get_node(node_name, COMM_COLL_NODE)
+            node3.attr.append(ChakraAttr(name="is_cpu_op", bool_val=False))
+            node3.attr.extend([get_comm_type_attr(comm_type), ChakraAttr(name="comm_size", uint64_val=comm_size)])
+            node3.data_deps.append(node2.id)
+            encode_message(et, node3)
 
-def one_comm_coll_node_allgather(num_npus: int, comm_size: int) -> None:
-    """Generate one AllGather communication collective node."""
-    generate_comm_coll_node(num_npus, comm_size, ALL_GATHER, "ALL_GATHER")
+            node4 = get_node(node_name, COMM_COLL_NODE)
+            node4.attr.append(ChakraAttr(name="is_cpu_op", bool_val=False))
+            node4.attr.extend([get_comm_type_attr(comm_type), ChakraAttr(name="comm_size", uint64_val=comm_size)])
+            node4.data_deps.append(node3.id)
+            encode_message(et, node4)
 
-
-def one_comm_coll_node_reducescatter(num_npus: int, comm_size: int) -> None:
-    """Generate one ReduceScatter communication collective node."""
-    generate_comm_coll_node(num_npus, comm_size, REDUCE_SCATTER, "REDUCE_SCATTER")
-
-
-def one_comm_coll_node_broadcast(num_npus: int, comm_size: int) -> None:
-    """Generate one Broadcast communication collective node."""
-    generate_comm_coll_node(num_npus, comm_size, BROADCAST, "BROADCAST")
-
-
-def one_comm_coll_node_barrier(num_npus: int) -> None:
-    """Generate one Barrier communication collective node."""
-    generate_comm_coll_node(num_npus, comm_size=0, comm_type=BARRIER, node_name="BARRIER")
+            node5 = get_node(node_name, COMM_COLL_NODE)
+            node5.attr.append(ChakraAttr(name="is_cpu_op", bool_val=False))
+            node5.attr.extend([get_comm_type_attr(comm_type), ChakraAttr(name="comm_size", uint64_val=comm_size)])
+            node5.data_deps.append(node4.id)
+            encode_message(et, node5)
 
 
 def one_comm_send_node(num_npus: int, tensor_size: int) -> None:
@@ -253,6 +290,7 @@ def one_comm_recv_node(num_npus: int, tensor_size: int) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Execution Trace Generator")
+    parser.add_argument("--model", type=str, default="one_comm_coll_node_allreduce", help="Number of NPUs")
     parser.add_argument("--num_npus", type=int, default=64, help="Number of NPUs")
     parser.add_argument("--default_runtime", type=int, default=5, help="Default runtime of compute nodes")
     parser.add_argument("--default_tensor_size", type=int, default=1024, help="Default tensor size of memory nodes")
@@ -261,20 +299,69 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    one_metadata_node_all_types(args.num_npus)
-    one_remote_mem_load_node(args.num_npus, args.default_tensor_size)
-    one_remote_mem_store_node(args.num_npus, args.default_tensor_size)
-    one_comp_node(args.num_npus, args.default_runtime)
-    two_comp_nodes_independent(args.num_npus, args.default_runtime)
-    two_comp_nodes_dependent(args.num_npus, args.default_runtime)
-    one_comm_coll_node_allreduce(args.num_npus, args.default_comm_size)
-    one_comm_coll_node_alltoall(args.num_npus, args.default_comm_size)
-    one_comm_coll_node_allgather(args.num_npus, args.default_comm_size)
-    one_comm_coll_node_reducescatter(args.num_npus, args.default_comm_size)
-    one_comm_coll_node_broadcast(args.num_npus, args.default_comm_size)
-    one_comm_coll_node_barrier(args.num_npus)
-    one_comm_send_node(args.num_npus, args.default_tensor_size)
-    one_comm_recv_node(args.num_npus, args.default_tensor_size)
+    model_functions = {
+        "one_metadata_node_all_types": (one_metadata_node_all_types, [args.num_npus]),
+        "one_remote_mem_load_node": (one_remote_mem_load_node, [args.num_npus, args.default_tensor_size]),
+        "one_remote_mem_store_node": (one_remote_mem_store_node, [args.num_npus, args.default_tensor_size]),
+        "one_comp_node": (one_comp_node, [args.num_npus, args.default_runtime]),
+        "two_comp_nodes_independent": (two_comp_nodes_independent, [args.num_npus, args.default_runtime]),
+        "two_comp_nodes_dependent": (two_comp_nodes_dependent, [args.num_npus, args.default_runtime]),
+        "one_comm_coll_node_allreduce_five_stack": (
+            generate_comm_coll_node_five_stack,
+            [args.num_npus, args.default_comm_size, ALL_REDUCE, "ALL_REDUCE"],
+        ),
+        "one_comm_coll_node_alltoall_five_stack": (
+            generate_comm_coll_node_five_stack,
+            [args.num_npus, args.default_comm_size, ALL_TO_ALL, "ALL_TO_ALL"],
+        ),
+        "one_comm_coll_node_allgather_five_stack": (
+            generate_comm_coll_node_five_stack,
+            [args.num_npus, args.default_comm_size, ALL_GATHER, "ALL_GATHER"],
+        ),
+        "one_comm_coll_node_reducescatter_five_stack": (
+            generate_comm_coll_node_five_stack,
+            [args.num_npus, args.default_comm_size, REDUCE_SCATTER, "REDUCE_SCATTER"],
+        ),
+        "one_comm_coll_node_broadcast_five_stack": (
+            generate_comm_coll_node_five_stack,
+            [args.num_npus, args.default_comm_size, BROADCAST, "BROADCAST"],
+        ),
+        "one_comm_coll_node_barrier_five_stack": (
+            generate_comm_coll_node_five_stack,
+            [args.num_npus, 0, BARRIER, "BARRIER"],
+        ),
+        "one_comm_coll_node_allreduce": (
+            generate_comm_coll_node,
+            [args.num_npus, args.default_comm_size, ALL_REDUCE, "ALL_REDUCE"],
+        ),
+        "one_comm_coll_node_alltoall": (
+            generate_comm_coll_node,
+            [args.num_npus, args.default_comm_size, ALL_TO_ALL, "ALL_TO_ALL"],
+        ),
+        "one_comm_coll_node_allgather": (
+            generate_comm_coll_node,
+            [args.num_npus, args.default_comm_size, ALL_GATHER, "ALL_GATHER"],
+        ),
+        "one_comm_coll_node_reducescatter": (
+            generate_comm_coll_node,
+            [args.num_npus, args.default_comm_size, REDUCE_SCATTER, "REDUCE_SCATTER"],
+        ),
+        "one_comm_coll_node_broadcast": (
+            generate_comm_coll_node,
+            [args.num_npus, args.default_comm_size, BROADCAST, "BROADCAST"],
+        ),
+        "one_comm_coll_node_barrier": (generate_comm_coll_node, [args.num_npus, 0, BARRIER, "BARRIER"]),
+        "one_comm_send_node": (one_comm_send_node, [args.num_npus, args.default_tensor_size]),
+        "one_comm_recv_node": (one_comm_recv_node, [args.num_npus, args.default_tensor_size]),
+        "comm_send_recv": (comm_send_recv, [args.num_npus, args.default_comm_size]),
+    }
+
+    if args.model in model_functions:
+        model_function, model_args = model_functions[args.model]
+        model_function(*model_args)
+    else:
+        # handle invalid model names here
+        print("Invalid model name")
 
 
 if __name__ == "__main__":

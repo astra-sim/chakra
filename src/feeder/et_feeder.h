@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: 2026 Advanced Micro Devices, Inc.
+
 #pragma once
 
 #include <memory>
@@ -6,14 +9,15 @@
 #include <unordered_set>
 #include <vector>
 
-#include "et_feeder_node.h"
-#include "protoio.hh"
+#include <feeder/et_feeder_node.h>
+#include <third_party/utils/protoio.hh>
 
 namespace Chakra {
 struct CompareNodes {
-  bool operator()(
-      const std::shared_ptr<ETFeederNode> lhs,
-      const std::shared_ptr<ETFeederNode> rhs) const {
+  template <class T>
+  constexpr bool operator()(
+      const std::shared_ptr<T> lhs,
+      const std::shared_ptr<T> rhs) const {
     return lhs->getChakraNode()->id() > rhs->getChakraNode()->id();
   }
 };
@@ -39,6 +43,9 @@ class ETFeeder {
   ProtoInputStream trace_;
   const uint32_t window_size_;
   bool et_complete_;
+  // Directory of the trace file, used to resolve an inline
+  // custom_comm_plan_file given relative to it.
+  std::string plan_base_dir_;
 
   std::unordered_map<uint64_t, std::shared_ptr<ETFeederNode>> dep_graph_{};
   std::unordered_set<uint64_t> dep_free_node_id_set_{};

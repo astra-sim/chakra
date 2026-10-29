@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: 2026 Advanced Micro Devices, Inc.
+
 syntax = "proto3";
 
 package ChakraProtoMsg;
@@ -127,6 +130,8 @@ enum CollectiveCommType {
   REDUCE_SCATTER = 7;
   REDUCE_SCATTER_BLOCK = 8;
   BARRIER = 9;
+  CUSTOM_MSCCL = 10;
+  INVALID_COMM = 99;
 }
 
 message Node {

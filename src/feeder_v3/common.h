@@ -1,7 +1,9 @@
-#ifndef CHAKRA_FEEDER_V3_COMMON_H
-#define CHAKRA_FEEDER_V3_COMMON_H
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: 2026 Advanced Micro Devices, Inc.
+
+#pragma once
+#include <et_def.pb.h>
 #include <cstdint>
-#include "et_def.pb.h"
 
 namespace Chakra {
 namespace FeederV3 {
@@ -26,5 +28,3 @@ constexpr static size_t DEFAULT_PROTOBUF_BUFFER_SIZE = 16384;
 
 } // namespace FeederV3
 } // namespace Chakra
-
-#endif

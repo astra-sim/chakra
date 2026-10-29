@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: 2026 Advanced Micro Devices, Inc.
+
 from typing import Any, Dict, List, Optional
 
 from et_replay.execution_trace import Node as PyTorchOperator
@@ -88,9 +91,7 @@ class KinetoOperator:
         """
         simulatable_categories = {"cpu_op", "user_annotation"}
         name_exceptions = {"ProfilerStep"}
-        if self.category in simulatable_categories and all(exc not in self.name for exc in name_exceptions):
-            return True
-        return False
+        return self.category in simulatable_categories and all(exc not in self.name for exc in name_exceptions)
 
     def is_cuda_runtime_op(self) -> bool:
         """
